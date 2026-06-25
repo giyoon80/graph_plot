@@ -3,10 +3,20 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>안녕하세요, 박사님</title>
+    <title>그래프 값 추출기</title>
     <style>
       :root {
         color-scheme: light;
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --panel-soft: #eef3f8;
+        --text: #172033;
+        --muted: #5d6b82;
+        --line: #d6dee8;
+        --accent: #0f766e;
+        --accent-strong: #0d5f59;
+        --danger: #b42318;
+        --shadow: 0 20px 55px rgba(15, 23, 42, 0.12);
         font-family:
           "Pretendard",
           "Noto Sans KR",
@@ -15,8 +25,22 @@
           BlinkMacSystemFont,
           "Segoe UI",
           sans-serif;
-        background: #f6f4ef;
-        color: #1f2933;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      body.dark {
+        color-scheme: dark;
+        --bg: #101623;
+        --panel: #172033;
+        --panel-soft: #202b40;
+        --text: #f8fafc;
+        --muted: #b6c2d2;
+        --line: #334155;
+        --accent: #2dd4bf;
+        --accent-strong: #5eead4;
+        --danger: #fca5a5;
+        --shadow: 0 20px 55px rgba(0, 0, 0, 0.32);
       }
 
       * {
@@ -26,40 +50,1419 @@
       body {
         min-height: 100vh;
         margin: 0;
-        display: grid;
-        place-items: center;
-        padding: 24px;
         background:
-          radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.85), transparent 28rem),
-          linear-gradient(135deg, #f6f4ef 0%, #dce7e2 48%, #f3d7c7 100%);
+          radial-gradient(circle at top left, rgba(45, 212, 191, 0.16), transparent 26rem),
+          var(--bg);
       }
 
-      main {
-        width: min(100%, 720px);
-        text-align: center;
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+      }
+
+      .app {
+        width: min(1480px, 100%);
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
       }
 
       h1 {
         margin: 0;
-        font-size: clamp(32px, 8vw, 88px);
+        font-size: clamp(28px, 4vw, 48px);
         line-height: 1.05;
         letter-spacing: 0;
-        word-break: keep-all;
       }
 
-      p {
-        margin: 24px auto 0;
-        max-width: 36rem;
-        font-size: clamp(18px, 3vw, 24px);
-        line-height: 1.6;
-        color: #43515c;
+      .topbar p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.5;
+      }
+
+      .theme-toggle {
+        width: 44px;
+        height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--text);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        font-size: 21px;
+        box-shadow: var(--shadow);
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .language-select {
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--text);
+        padding: 0 12px;
+        box-shadow: var(--shadow);
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+        gap: 20px;
+        align-items: start;
+      }
+
+      .panel,
+      .stage {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .section {
+        padding: 18px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .section:first-child {
+        padding-top: 0;
+        border-top: 0;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 17px;
+        letter-spacing: 0;
+      }
+
+      .upload {
+        display: grid;
+        gap: 10px;
+      }
+
+      .file-input {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        border: 1px dashed var(--line);
+        border-radius: 8px;
+        background: var(--panel-soft);
+        color: var(--text);
+      }
+
+      .mode-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .mode-button,
+      .action-button {
+        min-height: 42px;
+        border-radius: 8px;
+        background: var(--panel-soft);
+        color: var(--text);
+        cursor: pointer;
+        border: 1px solid var(--line);
+      }
+
+      .mode-button.active,
+      .action-button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #ffffff;
+      }
+
+      body.dark .mode-button.active,
+      body.dark .action-button.primary {
+        color: #06201d;
+      }
+
+      .action-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      input[type="number"],
+      input[type="date"],
+      select {
+        width: 100%;
+        min-height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--text);
+        padding: 8px 10px;
+      }
+
+      .hint,
+      .status {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .status strong {
+        color: var(--accent-strong);
+      }
+
+      .stage {
+        min-height: 620px;
+        overflow: hidden;
+      }
+
+      .canvas-wrap {
+        position: relative;
+        width: 100%;
+        min-height: 620px;
+        background:
+          linear-gradient(45deg, rgba(148, 163, 184, 0.16) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(148, 163, 184, 0.16) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(148, 163, 184, 0.16) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(148, 163, 184, 0.16) 75%);
+        background-size: 28px 28px;
+        background-position: 0 0, 0 14px, 14px -14px, -14px 0;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        min-height: 620px;
+        cursor: crosshair;
+      }
+
+      .empty-state {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 28px;
+        color: var(--muted);
+        pointer-events: none;
+      }
+
+      .magnifier {
+        position: absolute;
+        width: 188px;
+        height: 188px;
+        border: 2px solid var(--accent);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        pointer-events: none;
+        transform: translate(18px, -50%);
+        z-index: 2;
+      }
+
+      .magnifier[hidden] {
+        display: none;
+      }
+
+      .magnifier canvas {
+        width: 184px;
+        height: 184px;
+        min-height: 184px;
+        cursor: none;
+      }
+
+      .magnifier-label {
+        position: absolute;
+        left: 8px;
+        bottom: 8px;
+        padding: 3px 7px;
+        border-radius: 6px;
+        background: rgba(15, 23, 42, 0.72);
+        color: #ffffff;
+        font-size: 12px;
+        line-height: 1;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        padding: 8px 6px;
+        border-bottom: 1px solid var(--line);
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      th:first-child,
+      td:first-child {
+        text-align: left;
+      }
+
+      .point-list {
+        max-height: 220px;
+        overflow: auto;
+      }
+
+      .delete-button {
+        color: var(--danger);
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .comments {
+        margin-top: 20px;
+        padding: 20px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .calibration-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .calibration-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+        min-height: 36px;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-soft);
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .calibration-item strong {
+        color: var(--text);
+      }
+
+      .calibration-delete {
+        color: var(--danger);
+        background: transparent;
+        cursor: pointer;
+      }
+
+      @media (max-width: 980px) {
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+
+        .stage,
+        .canvas-wrap,
+        canvas {
+          min-height: 480px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .app {
+          padding: 16px;
+        }
+
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .field-grid,
+        .mode-grid,
+        .action-row {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
   <body>
-    <main>
-      <h1>안녕하세요, 박사님</h1>
-      <p>방문해 주셔서 감사합니다.</p>
-    </main>
+    <div class="app">
+      <header class="topbar">
+        <div>
+          <h1 data-i18n="appTitle">그래프 값 추출기</h1>
+          <p data-i18n="appSubtitle">스크린샷을 올리고 축 기준점 4개를 찍은 다음 데이터 포인트를 클릭하세요.</p>
+        </div>
+        <div class="top-actions">
+          <select class="language-select" id="languageSelect" aria-label="언어 선택" data-i18n-aria-label="languageLabel">
+            <option value="ko">한국어</option>
+            <option value="en">English</option>
+          </select>
+          <button class="theme-toggle" type="button" aria-label="다크모드 켜기" aria-pressed="false">☾</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="panel">
+          <section class="section upload">
+            <h2 data-i18n="imageTitle">이미지</h2>
+            <input class="file-input" id="imageInput" type="file" accept="image/*">
+            <p class="hint" data-i18n="imageHint">PNG, JPG 같은 그래프 스크린샷을 올릴 수 있습니다.</p>
+          </section>
+
+          <section class="section">
+            <h2 data-i18n="calibrationTitle">1. 축 기준점</h2>
+            <div class="mode-grid">
+              <button class="mode-button active" type="button" data-mode="x1" data-i18n="modeX1">X축 왼쪽</button>
+              <button class="mode-button" type="button" data-mode="x2" data-i18n="modeX2">X축 오른쪽</button>
+              <button class="mode-button" type="button" data-mode="y1" data-i18n="modeY1">Y축 아래</button>
+              <button class="mode-button" type="button" data-mode="y2" data-i18n="modeY2">Y축 위</button>
+              <button class="mode-button" type="button" data-mode="data" data-i18n="modeData">데이터 찍기</button>
+            </div>
+            <p class="hint" data-i18n="calibrationHint">각 축의 두 끝 기준점을 이미지에서 클릭합니다. 기준점은 축 눈금 위에 찍는 것이 좋습니다.</p>
+            <div class="calibration-list" id="calibrationList"></div>
+          </section>
+
+          <section class="section">
+            <h2 data-i18n="axisTitle">2. 축 값 입력</h2>
+            <label>
+              <span data-i18n="xAxisType">X축 타입</span>
+              <select id="xAxisType">
+                <option value="number" data-i18n="xAxisNumber">숫자</option>
+                <option value="date" data-i18n="xAxisDate">날짜</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="yAxisType">Y축 타입</span>
+              <select id="yAxisType">
+                <option value="number" data-i18n="yAxisNumber">숫자</option>
+                <option value="date" data-i18n="yAxisDate">날짜</option>
+              </select>
+            </label>
+            <div class="field-grid">
+              <label>
+                <span data-i18n="x1Label">X 왼쪽 값</span>
+                <input id="x1Value" type="number" value="0" step="any">
+              </label>
+              <label>
+                <span data-i18n="x2Label">X 오른쪽 값</span>
+                <input id="x2Value" type="number" value="10" step="any">
+              </label>
+              <label>
+                <span data-i18n="y1Label">Y 아래 값</span>
+                <input id="y1Value" type="number" value="0" step="any">
+              </label>
+              <label>
+                <span data-i18n="y2Label">Y 위 값</span>
+                <input id="y2Value" type="number" value="10" step="any">
+              </label>
+            </div>
+            <p class="hint" data-i18n="axisHint">입력한 값과 이미지에서 찍은 기준점을 이용해 클릭한 점의 X/Y 값을 계산합니다.</p>
+          </section>
+
+          <section class="section">
+            <h2 data-i18n="resultTitle">3. 결과</h2>
+            <p class="status" id="statusText">이미지를 업로드하세요.</p>
+            <div class="action-row">
+              <button class="action-button" id="undoButton" type="button" data-i18n="undo">마지막 삭제</button>
+              <button class="action-button" id="clearButton" type="button" data-i18n="clear">전체 삭제</button>
+              <button class="action-button primary" id="csvButton" type="button" data-i18n="downloadCsv">CSV 다운로드</button>
+              <button class="action-button" id="copyButton" type="button" data-i18n="copy">복사</button>
+            </div>
+            <div class="point-list">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-i18n="tableIndex">#</th>
+                    <th data-i18n="tableX">X</th>
+                    <th data-i18n="tableY">Y</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="pointTable"></tbody>
+              </table>
+            </div>
+          </section>
+        </aside>
+
+        <section class="stage" aria-label="그래프 이미지 작업 영역" data-i18n-aria-label="stageLabel">
+          <div class="canvas-wrap">
+            <canvas id="graphCanvas"></canvas>
+            <div class="magnifier" id="magnifier" hidden>
+              <canvas id="magnifierCanvas" width="184" height="184"></canvas>
+              <div class="magnifier-label">4x</div>
+            </div>
+            <div class="empty-state" id="emptyState" data-i18n="emptyState">그래프 스크린샷을 업로드하면 여기에서 축 기준점과 데이터 포인트를 찍을 수 있습니다.</div>
+          </div>
+        </section>
+      </main>
+
+      <section class="comments" aria-label="댓글" data-i18n-aria-label="commentsLabel">
+        <h2 data-i18n="commentsTitle">익명 피드백</h2>
+        <p class="hint" data-i18n="commentsHint">이름을 공개하지 않고 의견을 남길 수 있습니다. Disqus 게스트 댓글이 켜져 있어야 로그인 없이 작성할 수 있습니다.</p>
+        <div id="disqus_thread"></div>
+      </section>
+    </div>
+
+    <script>
+      const themeToggle = document.querySelector(".theme-toggle");
+      const imageInput = document.querySelector("#imageInput");
+      const canvas = document.querySelector("#graphCanvas");
+      const ctx = canvas.getContext("2d");
+      const magnifier = document.querySelector("#magnifier");
+      const magnifierCanvas = document.querySelector("#magnifierCanvas");
+      const magnifierCtx = magnifierCanvas.getContext("2d");
+      const emptyState = document.querySelector("#emptyState");
+      const statusText = document.querySelector("#statusText");
+      const calibrationList = document.querySelector("#calibrationList");
+      const pointTable = document.querySelector("#pointTable");
+      const modeButtons = [...document.querySelectorAll(".mode-button")];
+      const languageSelect = document.querySelector("#languageSelect");
+      const xAxisType = document.querySelector("#xAxisType");
+      const yAxisType = document.querySelector("#yAxisType");
+      const valueInputs = {
+        x1: document.querySelector("#x1Value"),
+        x2: document.querySelector("#x2Value"),
+        y1: document.querySelector("#y1Value"),
+        y2: document.querySelector("#y2Value"),
+      };
+
+      const state = {
+        mode: "x1",
+        activeCalibration: null,
+        activePointIndex: null,
+        lastPointerImagePoint: null,
+        image: null,
+        imageScale: 1,
+        imageOffsetX: 0,
+        imageOffsetY: 0,
+        calibration: {
+          x1: null,
+          x2: null,
+          y1: null,
+          y2: null,
+        },
+        points: [],
+      };
+
+      const translations = {
+        ko: {
+          appTitle: "그래프 값 추출기",
+          appSubtitle: "스크린샷을 올리고 축 기준점 4개를 찍은 다음 데이터 포인트를 클릭하세요.",
+          languageLabel: "언어 선택",
+          darkOn: "다크모드 켜기",
+          lightOn: "라이트모드 켜기",
+          imageTitle: "이미지",
+          imageHint: "PNG, JPG 같은 그래프 스크린샷을 올릴 수 있습니다.",
+          calibrationTitle: "1. 축 기준점",
+          modeX1: "X축 왼쪽",
+          modeX2: "X축 오른쪽",
+          modeY1: "Y축 아래",
+          modeY2: "Y축 위",
+          modeData: "데이터 찍기",
+          calibrationHint: "각 축의 두 끝 기준점을 이미지에서 클릭합니다. 기준점은 축 눈금 위에 찍는 것이 좋습니다.",
+          axisTitle: "2. 축 값 입력",
+          xAxisType: "X축 타입",
+          xAxisNumber: "숫자",
+          xAxisDate: "날짜",
+          yAxisType: "Y축 타입",
+          yAxisNumber: "숫자",
+          yAxisDate: "날짜",
+          x1Label: "X 왼쪽 값",
+          x2Label: "X 오른쪽 값",
+          y1Label: "Y 아래 값",
+          y2Label: "Y 위 값",
+          axisHint: "입력한 값과 이미지에서 찍은 기준점을 이용해 클릭한 점의 X/Y 값을 계산합니다.",
+          resultTitle: "3. 결과",
+          undo: "마지막 삭제",
+          clear: "전체 삭제",
+          downloadCsv: "CSV 다운로드",
+          copy: "복사",
+          tableIndex: "#",
+          tableX: "X",
+          tableY: "Y",
+          commentsLabel: "댓글",
+          commentsTitle: "익명 피드백",
+          commentsHint: "이름을 공개하지 않고 의견을 남길 수 있습니다. Disqus 게스트 댓글이 켜져 있어야 로그인 없이 작성할 수 있습니다.",
+          deletePoint: "삭제",
+          deleteCalibration: "삭제",
+          set: "설정됨",
+          notSet: "미설정",
+          stageLabel: "그래프 이미지 작업 영역",
+          emptyState: "그래프 스크린샷을 업로드하면 여기에서 축 기준점과 데이터 포인트를 찍을 수 있습니다.",
+          uploadImage: "이미지를 업로드하세요.",
+          missingPrefix: "기준점 필요:",
+          dataModeStatus: "데이터 포인트를 클릭하세요. 현재",
+          countSuffix: "개",
+          calibrationReady: "기준점 보정 완료. 데이터 찍기 모드로 전환하세요.",
+          copied: "CSV가 클립보드에 복사되었습니다. 현재",
+          clipboardDenied: "브라우저가 클립보드 복사를 허용하지 않았습니다. CSV 다운로드를 사용하세요.",
+          keyboardAdjustHint: "선택한 기준점은 화살표 키로 1px씩, Shift+화살표로 10px씩 미세조정할 수 있습니다.",
+          pointAdjustHint: "선택한 데이터 포인트는 화살표 키로 1px씩, Shift+화살표로 10px씩 미세조정할 수 있습니다.",
+          deleteKeyHint: "Delete 키로 선택한 데이터 포인트를 삭제할 수 있습니다.",
+        },
+        en: {
+          appTitle: "Graph Value Extractor",
+          appSubtitle: "Upload a screenshot, mark four axis reference points, then click data points.",
+          languageLabel: "Language",
+          darkOn: "Turn on dark mode",
+          lightOn: "Turn on light mode",
+          imageTitle: "Image",
+          imageHint: "Upload a graph screenshot such as a PNG or JPG.",
+          calibrationTitle: "1. Axis Reference Points",
+          modeX1: "X-axis left",
+          modeX2: "X-axis right",
+          modeY1: "Y-axis bottom",
+          modeY2: "Y-axis top",
+          modeData: "Data points",
+          calibrationHint: "Click the two end reference points for each axis. Points on tick marks work best.",
+          axisTitle: "2. Axis Values",
+          xAxisType: "X-axis type",
+          xAxisNumber: "Number",
+          xAxisDate: "Date",
+          yAxisType: "Y-axis type",
+          yAxisNumber: "Number",
+          yAxisDate: "Date",
+          x1Label: "X left value",
+          x2Label: "X right value",
+          y1Label: "Y bottom value",
+          y2Label: "Y top value",
+          axisHint: "Values are calculated from the entered axis values and the reference points on the image.",
+          resultTitle: "3. Results",
+          undo: "Undo last",
+          clear: "Clear all",
+          downloadCsv: "Download CSV",
+          copy: "Copy",
+          tableIndex: "#",
+          tableX: "X",
+          tableY: "Y",
+          commentsLabel: "Comments",
+          commentsTitle: "Anonymous Feedback",
+          commentsHint: "Leave feedback without showing your name. Guest commenting must be enabled in Disqus to allow comments without logging in.",
+          deletePoint: "Delete",
+          deleteCalibration: "Delete",
+          set: "Set",
+          notSet: "Not set",
+          stageLabel: "Graph image workspace",
+          emptyState: "Upload a graph screenshot to mark axis reference points and data points here.",
+          uploadImage: "Upload an image.",
+          missingPrefix: "Reference points needed:",
+          dataModeStatus: "Click data points. Current",
+          countSuffix: "points",
+          calibrationReady: "Calibration complete. Switch to data point mode.",
+          copied: "CSV copied to clipboard. Current",
+          clipboardDenied: "The browser did not allow clipboard access. Use CSV download instead.",
+          keyboardAdjustHint: "Use arrow keys to nudge the selected reference point by 1px, or Shift+arrow by 10px.",
+          pointAdjustHint: "Use arrow keys to nudge the selected data point by 1px, or Shift+arrow by 10px.",
+          deleteKeyHint: "Press Delete to remove the selected data point.",
+        },
+      };
+
+      const savedTheme = localStorage.getItem("theme");
+      const savedLanguage = localStorage.getItem("language") || "ko";
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const magnifierZoom = 4;
+
+      function t(key) {
+        return translations[languageSelect.value]?.[key] || translations.ko[key] || key;
+      }
+
+      function setLanguage(language) {
+        languageSelect.value = translations[language] ? language : "ko";
+        document.documentElement.lang = languageSelect.value;
+        document.title = t("appTitle");
+
+        document.querySelectorAll("[data-i18n]").forEach((element) => {
+          element.textContent = t(element.dataset.i18n);
+        });
+
+        document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
+          element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel));
+        });
+
+        localStorage.setItem("language", languageSelect.value);
+        setTheme(document.body.classList.contains("dark"));
+        refresh();
+      }
+
+      function setTheme(isDark) {
+        document.body.classList.toggle("dark", isDark);
+        themeToggle.textContent = isDark ? "☀" : "☾";
+        themeToggle.setAttribute("aria-label", isDark ? t("lightOn") : t("darkOn"));
+        themeToggle.setAttribute("aria-pressed", String(isDark));
+        draw();
+      }
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.max(1, Math.floor(rect.width * ratio));
+        canvas.height = Math.max(1, Math.floor(rect.height * ratio));
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        draw();
+      }
+
+      function setMode(mode) {
+        state.mode = mode;
+        if (mode !== "data" && state.calibration[mode]) {
+          state.activeCalibration = mode;
+          state.activePointIndex = null;
+        }
+        modeButtons.forEach((button) => {
+          button.classList.toggle("active", button.dataset.mode === mode);
+        });
+        updateStatus();
+      }
+
+      function calibrationLabel(key) {
+        const labels = {
+          x1: t("modeX1"),
+          x2: t("modeX2"),
+          y1: t("modeY1"),
+          y2: t("modeY2"),
+        };
+        return labels[key] || key;
+      }
+
+      function getCssColor(name) {
+        return getComputedStyle(document.body).getPropertyValue(name).trim();
+      }
+
+      function imageToCanvas(point) {
+        return {
+          x: state.imageOffsetX + point.x * state.imageScale,
+          y: state.imageOffsetY + point.y * state.imageScale,
+        };
+      }
+
+      function canvasToImage(point) {
+        return {
+          x: (point.x - state.imageOffsetX) / state.imageScale,
+          y: (point.y - state.imageOffsetY) / state.imageScale,
+        };
+      }
+
+      function getCanvasPoint(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        };
+      }
+
+      function isCalibrationMode() {
+        return state.mode !== "data";
+      }
+
+      function hideMagnifier() {
+        magnifier.hidden = true;
+      }
+
+      function updateMagnifier(event) {
+        if (!state.image) {
+          hideMagnifier();
+          return;
+        }
+
+        const canvasPoint = getCanvasPoint(event);
+        const imagePoint = canvasToImage(canvasPoint);
+        state.lastPointerImagePoint = imagePoint;
+        const previousActivePointIndex = state.activePointIndex;
+        activateNearestPoint(imagePoint);
+        if (previousActivePointIndex !== state.activePointIndex) {
+          draw();
+          renderTable();
+        }
+        updateMagnifierAtImagePoint(imagePoint, canvasPoint);
+      }
+
+      function activateNearestPoint(imagePoint) {
+        if (!state.points.length || state.activeCalibration) {
+          return;
+        }
+
+        let nearestIndex = null;
+        let nearestDistance = Infinity;
+        state.points.forEach((point, index) => {
+          const dx = point.image.x - imagePoint.x;
+          const dy = point.image.y - imagePoint.y;
+          const distance = dx * dx + dy * dy;
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearestIndex = index;
+          }
+        });
+
+        state.activePointIndex = nearestIndex;
+      }
+
+      function updateMagnifierAtImagePoint(imagePoint, canvasPoint = null) {
+        if (!state.image) {
+          hideMagnifier();
+          return;
+        }
+
+        if (
+          imagePoint.x < 0 ||
+          imagePoint.y < 0 ||
+          imagePoint.x > state.image.width ||
+          imagePoint.y > state.image.height
+        ) {
+          hideMagnifier();
+          return;
+        }
+
+        const wrapRect = canvas.parentElement.getBoundingClientRect();
+        const lensSize = magnifierCanvas.width;
+        const sourceSize = lensSize / magnifierZoom;
+        const sourceX = Math.max(0, Math.min(state.image.width - sourceSize, imagePoint.x - sourceSize / 2));
+        const sourceY = Math.max(0, Math.min(state.image.height - sourceSize, imagePoint.y - sourceSize / 2));
+        const displayPoint = canvasPoint || imageToCanvas(imagePoint);
+        const left = Math.min(wrapRect.width - 210, displayPoint.x + 18);
+        const top = Math.max(102, Math.min(wrapRect.height - 102, displayPoint.y));
+
+        magnifier.hidden = false;
+        magnifier.style.left = `${Math.max(12, left)}px`;
+        magnifier.style.top = `${top}px`;
+
+        magnifierCtx.clearRect(0, 0, lensSize, lensSize);
+        magnifierCtx.imageSmoothingEnabled = false;
+        magnifierCtx.drawImage(
+          state.image,
+          sourceX,
+          sourceY,
+          sourceSize,
+          sourceSize,
+          0,
+          0,
+          lensSize,
+          lensSize
+        );
+
+        const accent = getCssColor("--accent") || "#0f766e";
+        const danger = getCssColor("--danger") || "#b42318";
+
+        Object.entries(state.calibration).forEach(([key, point]) => {
+          if (!point) return;
+
+          const x = (point.x - sourceX) * magnifierZoom;
+          const y = (point.y - sourceY) * magnifierZoom;
+          if (x < -20 || y < -20 || x > lensSize + 20 || y > lensSize + 20) {
+            return;
+          }
+
+          const isActive = key === state.activeCalibration;
+          magnifierCtx.save();
+          magnifierCtx.strokeStyle = isActive ? danger : accent;
+          magnifierCtx.fillStyle = isActive ? danger : accent;
+          magnifierCtx.lineWidth = isActive ? 2.5 : 2;
+          magnifierCtx.beginPath();
+          magnifierCtx.arc(x, y, isActive ? 7 : 5, 0, Math.PI * 2);
+          magnifierCtx.stroke();
+          magnifierCtx.beginPath();
+          magnifierCtx.moveTo(x - 12, y);
+          magnifierCtx.lineTo(x + 12, y);
+          magnifierCtx.moveTo(x, y - 12);
+          magnifierCtx.lineTo(x, y + 12);
+          magnifierCtx.stroke();
+          magnifierCtx.font = "12px system-ui";
+          magnifierCtx.fillText(key.toUpperCase(), x + 9, y - 9);
+          magnifierCtx.restore();
+        });
+
+        state.points.forEach((point, index) => {
+          const x = (point.image.x - sourceX) * magnifierZoom;
+          const y = (point.image.y - sourceY) * magnifierZoom;
+          if (x < -16 || y < -16 || x > lensSize + 16 || y > lensSize + 16) {
+            return;
+          }
+
+          magnifierCtx.save();
+          const isActive = index === state.activePointIndex;
+          magnifierCtx.fillStyle = danger;
+          magnifierCtx.strokeStyle = "#ffffff";
+          magnifierCtx.lineWidth = isActive ? 3 : 2;
+          magnifierCtx.beginPath();
+          magnifierCtx.arc(x, y, isActive ? 7 : 5, 0, Math.PI * 2);
+          magnifierCtx.fill();
+          magnifierCtx.stroke();
+          magnifierCtx.fillStyle = danger;
+          magnifierCtx.font = "12px system-ui";
+          magnifierCtx.fillText(String(index + 1), x + 8, y - 8);
+          magnifierCtx.restore();
+        });
+
+        magnifierCtx.save();
+        magnifierCtx.strokeStyle = danger;
+        magnifierCtx.lineWidth = 1.5;
+        magnifierCtx.beginPath();
+        magnifierCtx.moveTo(lensSize / 2 - 18, lensSize / 2);
+        magnifierCtx.lineTo(lensSize / 2 + 18, lensSize / 2);
+        magnifierCtx.moveTo(lensSize / 2, lensSize / 2 - 18);
+        magnifierCtx.lineTo(lensSize / 2, lensSize / 2 + 18);
+        magnifierCtx.stroke();
+        magnifierCtx.restore();
+      }
+
+      function hasCalibration() {
+        return state.calibration.x1 && state.calibration.x2 && state.calibration.y1 && state.calibration.y2;
+      }
+
+      function values() {
+        const x1 = parseAxisValue(valueInputs.x1.value, xAxisType.value);
+        const x2 = parseAxisValue(valueInputs.x2.value, xAxisType.value);
+        const y1 = parseAxisValue(valueInputs.y1.value, yAxisType.value);
+        const y2 = parseAxisValue(valueInputs.y2.value, yAxisType.value);
+
+        return {
+          x1,
+          x2,
+          y1,
+          y2,
+        };
+      }
+
+      function parseAxisValue(value, type) {
+        if (type === "date") {
+          const timestamp = Date.parse(`${value}T00:00:00`);
+          return Number.isFinite(timestamp) ? timestamp : NaN;
+        }
+
+        return Number(value);
+      }
+
+      function toDataValue(imagePoint) {
+        const cal = state.calibration;
+        const val = values();
+        const xRatio = (imagePoint.x - cal.x1.x) / (cal.x2.x - cal.x1.x);
+        const yRatio = (cal.y1.y - imagePoint.y) / (cal.y1.y - cal.y2.y);
+
+        return {
+          x: val.x1 + xRatio * (val.x2 - val.x1),
+          y: val.y1 + yRatio * (val.y2 - val.y1),
+        };
+      }
+
+      function formatNumber(value) {
+        if (!Number.isFinite(value)) {
+          return "";
+        }
+        return Number(value.toPrecision(8)).toString();
+      }
+
+      function formatDate(value) {
+        if (!Number.isFinite(value)) {
+          return "";
+        }
+
+        return new Date(value).toISOString().slice(0, 10);
+      }
+
+      function formatXValue(value) {
+        return xAxisType.value === "date" ? formatDate(value) : formatNumber(value);
+      }
+
+      function formatYValue(value) {
+        return yAxisType.value === "date" ? formatDate(value) : formatNumber(value);
+      }
+
+      function recalculatePoints() {
+        if (!hasCalibration()) {
+          return;
+        }
+
+        const activePoint = state.activePointIndex !== null ? state.points[state.activePointIndex] : null;
+        state.points.forEach((point) => {
+          point.value = toDataValue(point.image);
+        });
+        sortPointsByX(activePoint);
+      }
+
+      function sortPointsByX(activePoint = state.activePointIndex !== null ? state.points[state.activePointIndex] : null) {
+        state.points.sort((a, b) => {
+          const ax = Number.isFinite(a.value.x) ? a.value.x : Infinity;
+          const bx = Number.isFinite(b.value.x) ? b.value.x : Infinity;
+          if (ax !== bx) {
+            return ax - bx;
+          }
+
+          const ay = Number.isFinite(a.value.y) ? a.value.y : Infinity;
+          const by = Number.isFinite(b.value.y) ? b.value.y : Infinity;
+          return ay - by;
+        });
+
+        state.activePointIndex = activePoint ? state.points.indexOf(activePoint) : null;
+      }
+
+      function drawMarker(point, color, label) {
+        const canvasPoint = imageToCanvas(point);
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(canvasPoint.x, canvasPoint.y, 6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(canvasPoint.x - 10, canvasPoint.y);
+        ctx.lineTo(canvasPoint.x + 10, canvasPoint.y);
+        ctx.moveTo(canvasPoint.x, canvasPoint.y - 10);
+        ctx.lineTo(canvasPoint.x, canvasPoint.y + 10);
+        ctx.stroke();
+        ctx.font = "13px system-ui";
+        ctx.fillText(label, canvasPoint.x + 10, canvasPoint.y - 10);
+        ctx.restore();
+      }
+
+      function draw() {
+        const rect = canvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+
+        if (!state.image) {
+          return;
+        }
+
+        const scale = Math.min(rect.width / state.image.width, rect.height / state.image.height);
+        state.imageScale = scale;
+        state.imageOffsetX = (rect.width - state.image.width * scale) / 2;
+        state.imageOffsetY = (rect.height - state.image.height * scale) / 2;
+
+        ctx.drawImage(
+          state.image,
+          state.imageOffsetX,
+          state.imageOffsetY,
+          state.image.width * scale,
+          state.image.height * scale
+        );
+
+        const accent = getCssColor("--accent") || "#0f766e";
+        const danger = getCssColor("--danger") || "#b42318";
+        const text = getCssColor("--text") || "#172033";
+
+        if (state.calibration.x1) drawMarker(state.calibration.x1, accent, "X1");
+        if (state.calibration.x2) drawMarker(state.calibration.x2, accent, "X2");
+        if (state.calibration.y1) drawMarker(state.calibration.y1, accent, "Y1");
+        if (state.calibration.y2) drawMarker(state.calibration.y2, accent, "Y2");
+
+        if (hasCalibration()) {
+          const x1 = imageToCanvas(state.calibration.x1);
+          const x2 = imageToCanvas(state.calibration.x2);
+          const y1 = imageToCanvas(state.calibration.y1);
+          const y2 = imageToCanvas(state.calibration.y2);
+          ctx.save();
+          ctx.strokeStyle = accent;
+          ctx.lineWidth = 2;
+          ctx.setLineDash([8, 6]);
+          ctx.beginPath();
+          ctx.moveTo(x1.x, x1.y);
+          ctx.lineTo(x2.x, x2.y);
+          ctx.moveTo(y1.x, y1.y);
+          ctx.lineTo(y2.x, y2.y);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        state.points.forEach((point, index) => {
+          const canvasPoint = imageToCanvas(point.image);
+          const isActive = index === state.activePointIndex;
+          ctx.save();
+          ctx.fillStyle = danger;
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = isActive ? 3 : 2;
+          ctx.beginPath();
+          ctx.arc(canvasPoint.x, canvasPoint.y, isActive ? 7 : 5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = text;
+          ctx.font = "12px system-ui";
+          ctx.fillText(String(index + 1), canvasPoint.x + 8, canvasPoint.y - 8);
+          ctx.restore();
+        });
+      }
+
+      function updateStatus() {
+        if (!state.image) {
+          statusText.textContent = t("uploadImage");
+          return;
+        }
+
+        const missing = [];
+        if (!state.calibration.x1) missing.push(t("modeX1"));
+        if (!state.calibration.x2) missing.push(t("modeX2"));
+        if (!state.calibration.y1) missing.push(t("modeY1"));
+        if (!state.calibration.y2) missing.push(t("modeY2"));
+
+        if (missing.length) {
+          statusText.innerHTML = `${t("missingPrefix")} <strong>${missing.join(", ")}</strong>`;
+          return;
+        }
+
+        if (state.mode === "data") {
+          const pointHint = state.activePointIndex !== null ? ` ${t("pointAdjustHint")} ${t("deleteKeyHint")}` : "";
+          statusText.innerHTML = `${t("dataModeStatus")} <strong>${state.points.length}</strong> ${t("countSuffix")}${pointHint}`;
+          return;
+        }
+
+        if (state.activeCalibration) {
+          statusText.innerHTML = `${t("calibrationReady")} <strong>${calibrationLabel(state.activeCalibration)}</strong> ${t("keyboardAdjustHint")}`;
+          return;
+        }
+
+        statusText.textContent = t("calibrationReady");
+      }
+
+      function renderTable() {
+        pointTable.innerHTML = "";
+        state.points.forEach((point, index) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${formatXValue(point.value.x)}</td>
+            <td>${formatYValue(point.value.y)}</td>
+            <td><button class="delete-button" type="button" data-index="${index}">${t("deletePoint")}</button></td>
+          `;
+          row.dataset.pointIndex = String(index);
+          pointTable.append(row);
+        });
+      }
+
+      function renderCalibrationList() {
+        const keys = ["x1", "x2", "y1", "y2"];
+        calibrationList.innerHTML = "";
+
+        keys.forEach((key) => {
+          const point = state.calibration[key];
+          const item = document.createElement("div");
+          item.className = "calibration-item";
+          const coordinate = point
+            ? `${t("set")} (${formatNumber(point.x)}, ${formatNumber(point.y)})`
+            : t("notSet");
+
+          item.innerHTML = `
+            <span><strong>${calibrationLabel(key)}</strong> ${coordinate}</span>
+            ${
+              point
+                ? `<button class="calibration-delete" type="button" data-calibration="${key}">${t("deleteCalibration")}</button>`
+                : ""
+            }
+          `;
+          calibrationList.append(item);
+        });
+      }
+
+      function refresh() {
+        draw();
+        updateStatus();
+        renderCalibrationList();
+        renderTable();
+      }
+
+      function csvText() {
+        const rows = [["index", "x", "y"]];
+        state.points.forEach((point, index) => {
+          rows.push([index + 1, formatXValue(point.value.x), formatYValue(point.value.y)]);
+        });
+        return rows.map((row) => row.join(",")).join("\n");
+      }
+
+      function updateXAxisInputs() {
+        if (xAxisType.value === "date") {
+          valueInputs.x1.type = "date";
+          valueInputs.x2.type = "date";
+          if (!Number.isFinite(Date.parse(`${valueInputs.x1.value}T00:00:00`))) {
+            valueInputs.x1.value = "2024-01-01";
+          }
+          if (!Number.isFinite(Date.parse(`${valueInputs.x2.value}T00:00:00`))) {
+            valueInputs.x2.value = "2024-12-31";
+          }
+        } else {
+          valueInputs.x1.type = "number";
+          valueInputs.x2.type = "number";
+          valueInputs.x1.step = "any";
+          valueInputs.x2.step = "any";
+          if (!Number.isFinite(Number(valueInputs.x1.value))) valueInputs.x1.value = "0";
+          if (!Number.isFinite(Number(valueInputs.x2.value))) valueInputs.x2.value = "10";
+        }
+
+        recalculatePoints();
+        refresh();
+      }
+
+      function updateYAxisInputs() {
+        if (yAxisType.value === "date") {
+          valueInputs.y1.type = "date";
+          valueInputs.y2.type = "date";
+          if (!Number.isFinite(Date.parse(`${valueInputs.y1.value}T00:00:00`))) {
+            valueInputs.y1.value = "2024-01-01";
+          }
+          if (!Number.isFinite(Date.parse(`${valueInputs.y2.value}T00:00:00`))) {
+            valueInputs.y2.value = "2024-12-31";
+          }
+        } else {
+          valueInputs.y1.type = "number";
+          valueInputs.y2.type = "number";
+          valueInputs.y1.step = "any";
+          valueInputs.y2.step = "any";
+          if (!Number.isFinite(Number(valueInputs.y1.value))) valueInputs.y1.value = "0";
+          if (!Number.isFinite(Number(valueInputs.y2.value))) valueInputs.y2.value = "10";
+        }
+
+        recalculatePoints();
+        refresh();
+      }
+
+      setLanguage(savedLanguage);
+      setTheme(savedTheme ? savedTheme === "dark" : prefersDark);
+      resizeCanvas();
+
+      themeToggle.addEventListener("click", () => {
+        const isDark = !document.body.classList.contains("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        setTheme(isDark);
+      });
+
+      modeButtons.forEach((button) => {
+        button.addEventListener("click", () => setMode(button.dataset.mode));
+      });
+
+      languageSelect.addEventListener("change", () => setLanguage(languageSelect.value));
+
+      Object.values(valueInputs).forEach((input) => {
+        input.addEventListener("input", () => {
+          recalculatePoints();
+          refresh();
+        });
+      });
+
+      xAxisType.addEventListener("change", updateXAxisInputs);
+      yAxisType.addEventListener("change", updateYAxisInputs);
+
+      imageInput.addEventListener("change", () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+
+        const image = new Image();
+        image.onload = () => {
+          state.image = image;
+          state.activeCalibration = null;
+          state.activePointIndex = null;
+          state.lastPointerImagePoint = null;
+          state.calibration = { x1: null, x2: null, y1: null, y2: null };
+          state.points = [];
+          emptyState.hidden = true;
+          setMode("x1");
+          refresh();
+        };
+        image.src = URL.createObjectURL(file);
+      });
+
+      canvas.addEventListener("click", (event) => {
+        if (!state.image) return;
+
+        const imagePoint = canvasToImage(getCanvasPoint(event));
+        if (
+          imagePoint.x < 0 ||
+          imagePoint.y < 0 ||
+          imagePoint.x > state.image.width ||
+          imagePoint.y > state.image.height
+        ) {
+          return;
+        }
+
+        if (state.mode === "data") {
+          if (!hasCalibration()) {
+            updateStatus();
+            return;
+          }
+          state.points.push({
+            image: imagePoint,
+            value: toDataValue(imagePoint),
+          });
+          sortPointsByX(state.points[state.points.length - 1]);
+          state.activeCalibration = null;
+          refresh();
+          updateMagnifierAtImagePoint(imagePoint);
+          return;
+        }
+
+        state.calibration[state.mode] = imagePoint;
+        state.activeCalibration = state.mode;
+        state.activePointIndex = null;
+        const nextMode =
+          state.mode === "x1"
+            ? "x2"
+            : state.mode === "x2"
+              ? "y1"
+              : state.mode === "y1"
+                ? "y2"
+                : "data";
+        setMode(nextMode);
+        refresh();
+        updateMagnifierAtImagePoint(imagePoint);
+      });
+
+      canvas.addEventListener("mousemove", updateMagnifier);
+      canvas.addEventListener("mouseleave", hideMagnifier);
+
+      calibrationList.addEventListener("click", (event) => {
+        const button = event.target.closest(".calibration-delete");
+        if (!button) return;
+
+        const key = button.dataset.calibration;
+        state.calibration[key] = null;
+        state.activeCalibration = null;
+        state.activePointIndex = null;
+        hideMagnifier();
+        setMode(key);
+        refresh();
+      });
+
+      window.addEventListener("keydown", (event) => {
+        const keys = {
+          ArrowLeft: [-1, 0],
+          ArrowRight: [1, 0],
+          ArrowUp: [0, -1],
+          ArrowDown: [0, 1],
+        };
+        const delta = keys[event.key];
+        if (state.lastPointerImagePoint && !state.activeCalibration) {
+          activateNearestPoint(state.lastPointerImagePoint);
+        }
+        const activeCalibrationPoint = state.activeCalibration ? state.calibration[state.activeCalibration] : null;
+        const activeDataPoint =
+          state.activePointIndex !== null ? state.points[state.activePointIndex]?.image : null;
+
+        if ((event.key === "Delete" || event.key === "Backspace") && state.image && activeDataPoint) {
+          event.preventDefault();
+          state.points.splice(state.activePointIndex, 1);
+          state.activePointIndex = null;
+          refresh();
+          updateMagnifierAtImagePoint(state.lastPointerImagePoint || activeDataPoint);
+          return;
+        }
+
+        const activePoint = activeCalibrationPoint || activeDataPoint;
+
+        if (!delta || !state.image || !activePoint) {
+          return;
+        }
+
+        event.preventDefault();
+        const step = event.shiftKey ? 10 : 1;
+        activePoint.x = Math.max(0, Math.min(state.image.width, activePoint.x + delta[0] * step));
+        activePoint.y = Math.max(0, Math.min(state.image.height, activePoint.y + delta[1] * step));
+        if (activeDataPoint && hasCalibration()) {
+          const activePointRecord = state.points[state.activePointIndex];
+          activePointRecord.value = toDataValue(activeDataPoint);
+          sortPointsByX(activePointRecord);
+        } else {
+          recalculatePoints();
+        }
+        refresh();
+        updateMagnifierAtImagePoint(activePoint);
+      });
+
+      pointTable.addEventListener("click", (event) => {
+        const button = event.target.closest(".delete-button");
+        if (button) {
+          const deletedIndex = Number(button.dataset.index);
+          state.points.splice(deletedIndex, 1);
+          if (state.activePointIndex === deletedIndex) {
+            state.activePointIndex = null;
+          } else if (state.activePointIndex > deletedIndex) {
+            state.activePointIndex -= 1;
+          }
+          sortPointsByX();
+          refresh();
+          return;
+        }
+
+        const row = event.target.closest("tr");
+        if (row) {
+          state.activePointIndex = Number(row.dataset.pointIndex);
+          state.activeCalibration = null;
+          setMode("data");
+          updateMagnifierAtImagePoint(state.points[state.activePointIndex].image);
+        }
+        refresh();
+      });
+
+      document.querySelector("#undoButton").addEventListener("click", () => {
+        state.points.pop();
+        if (state.activePointIndex !== null && state.activePointIndex >= state.points.length) {
+          state.activePointIndex = state.points.length ? state.points.length - 1 : null;
+        }
+        sortPointsByX();
+        refresh();
+      });
+
+      document.querySelector("#clearButton").addEventListener("click", () => {
+        state.points = [];
+        state.activePointIndex = null;
+        sortPointsByX();
+        refresh();
+      });
+
+      document.querySelector("#csvButton").addEventListener("click", () => {
+        const blob = new Blob([csvText()], { type: "text/csv;charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "graph-points.csv";
+        link.click();
+        URL.revokeObjectURL(link.href);
+      });
+
+      document.querySelector("#copyButton").addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(csvText());
+          statusText.innerHTML = `${t("copied")} <strong>${state.points.length}</strong> ${t("countSuffix")}`;
+        } catch {
+          statusText.textContent = t("clipboardDenied");
+        }
+      });
+
+      window.addEventListener("resize", resizeCanvas);
+    </script>
+    <script>
+      (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://gyl-1.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
   </body>
 </html>
