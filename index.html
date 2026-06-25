@@ -358,6 +358,32 @@
         box-shadow: var(--shadow);
       }
 
+      .tutorial {
+        margin-bottom: 20px;
+        padding: 16px 18px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .tutorial summary {
+        cursor: pointer;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .tutorial ol {
+        margin: 14px 0 0;
+        padding-left: 22px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .tutorial li + li {
+        margin-top: 8px;
+      }
+
       .calibration-list {
         display: grid;
         gap: 8px;
@@ -433,6 +459,18 @@
           <button class="theme-toggle" type="button" aria-label="다크모드 켜기" aria-pressed="false">☾</button>
         </div>
       </header>
+
+      <details class="tutorial" open>
+        <summary data-i18n="tutorialTitle">튜토리얼</summary>
+        <ol>
+          <li data-i18n="tutorialStep1">그래프 스크린샷을 업로드합니다.</li>
+          <li data-i18n="tutorialStep2">X축 왼쪽, X축 오른쪽, Y축 아래, Y축 위 기준점을 차례로 클릭합니다.</li>
+          <li data-i18n="tutorialStep3">X축과 Y축 타입을 숫자 또는 날짜로 선택하고 각 기준값을 입력합니다.</li>
+          <li data-i18n="tutorialStep4">데이터 찍기 모드에서 그래프의 점이나 선 위를 클릭합니다.</li>
+          <li data-i18n="tutorialStep5">마우스를 이미지 위에 올리면 확대경이 나타나고, 화살표 키로 선택한 기준점 또는 데이터 포인트를 미세조정할 수 있습니다.</li>
+          <li data-i18n="tutorialStep6">Delete 키로 선택한 데이터 포인트를 삭제하고, CSV 다운로드 또는 복사 버튼으로 결과를 저장합니다.</li>
+        </ol>
+      </details>
 
       <main class="workspace">
         <aside class="panel">
@@ -584,6 +622,13 @@
           languageLabel: "언어 선택",
           darkOn: "다크모드 켜기",
           lightOn: "라이트모드 켜기",
+          tutorialTitle: "튜토리얼",
+          tutorialStep1: "그래프 스크린샷을 업로드합니다.",
+          tutorialStep2: "X축 왼쪽, X축 오른쪽, Y축 아래, Y축 위 기준점을 차례로 클릭합니다.",
+          tutorialStep3: "X축과 Y축 타입을 숫자 또는 날짜로 선택하고 각 기준값을 입력합니다.",
+          tutorialStep4: "데이터 찍기 모드에서 그래프의 점이나 선 위를 클릭합니다.",
+          tutorialStep5: "마우스를 이미지 위에 올리면 확대경이 나타나고, 화살표 키로 선택한 기준점 또는 데이터 포인트를 미세조정할 수 있습니다.",
+          tutorialStep6: "Delete 키로 선택한 데이터 포인트를 삭제하고, CSV 다운로드 또는 복사 버튼으로 결과를 저장합니다.",
           imageTitle: "이미지",
           imageHint: "PNG, JPG 같은 그래프 스크린샷을 올릴 수 있습니다.",
           calibrationTitle: "1. 축 기준점",
@@ -639,6 +684,13 @@
           languageLabel: "Language",
           darkOn: "Turn on dark mode",
           lightOn: "Turn on light mode",
+          tutorialTitle: "Tutorial",
+          tutorialStep1: "Upload a graph screenshot.",
+          tutorialStep2: "Click the X-axis left, X-axis right, Y-axis bottom, and Y-axis top reference points in order.",
+          tutorialStep3: "Choose number or date for each axis type, then enter the reference values.",
+          tutorialStep4: "Switch to data point mode and click points or lines on the graph.",
+          tutorialStep5: "Hover over the image to show the magnifier, then use arrow keys to fine-tune the selected reference point or data point.",
+          tutorialStep6: "Press Delete to remove the selected data point, then save results with Download CSV or Copy.",
           imageTitle: "Image",
           imageHint: "Upload a graph screenshot such as a PNG or JPG.",
           calibrationTitle: "1. Axis Reference Points",
