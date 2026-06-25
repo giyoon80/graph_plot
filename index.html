@@ -215,6 +215,13 @@
         gap: 8px;
       }
 
+      .inline-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: end;
+      }
+
       .field-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -422,6 +429,39 @@
         cursor: pointer;
       }
 
+      .series-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .series-button {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 8px;
+        align-items: center;
+        min-height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-soft);
+        color: var(--text);
+        cursor: pointer;
+        padding: 8px 10px;
+        text-align: left;
+      }
+
+      .series-button.active {
+        border-color: var(--accent);
+        box-shadow: inset 0 0 0 1px var(--accent);
+      }
+
+      .series-swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        background: currentColor;
+      }
+
       @media (max-width: 980px) {
         .workspace {
           grid-template-columns: 1fr;
@@ -489,6 +529,16 @@
           </section>
 
           <section class="section">
+            <h2 data-i18n="projectTitle">프로젝트</h2>
+            <div class="action-row">
+              <button class="action-button" id="saveProjectButton" type="button" data-i18n="saveProject">프로젝트 저장</button>
+              <label class="action-button" for="loadProjectInput" data-i18n="loadProject">프로젝트 불러오기</label>
+              <input id="loadProjectInput" type="file" accept="application/json" hidden>
+            </div>
+            <p class="hint" data-i18n="projectHint">이미지, 축 설정, 시리즈, 데이터 포인트를 JSON 파일로 저장하고 다시 불러옵니다.</p>
+          </section>
+
+          <section class="section">
             <h2 data-i18n="calibrationTitle">1. 축 기준점</h2>
             <div class="mode-grid">
               <button class="mode-button active" type="button" data-mode="x1" data-i18n="modeX1">X축 왼쪽</button>
@@ -519,6 +569,22 @@
             </label>
             <div class="field-grid">
               <label>
+                <span data-i18n="xScaleType">X축 스케일</span>
+                <select id="xScaleType">
+                  <option value="linear" data-i18n="scaleLinear">선형</option>
+                  <option value="log" data-i18n="scaleLog">로그</option>
+                </select>
+              </label>
+              <label>
+                <span data-i18n="yScaleType">Y축 스케일</span>
+                <select id="yScaleType">
+                  <option value="linear" data-i18n="scaleLinear">선형</option>
+                  <option value="log" data-i18n="scaleLog">로그</option>
+                </select>
+              </label>
+            </div>
+            <div class="field-grid">
+              <label>
                 <span data-i18n="x1Label">X 왼쪽 값</span>
                 <input id="x1Value" type="number" value="0" step="any">
               </label>
@@ -540,6 +606,14 @@
 
           <section class="section">
             <h2 data-i18n="resultTitle">3. 결과</h2>
+            <div class="inline-row">
+              <label>
+                <span data-i18n="seriesName">시리즈 이름</span>
+                <input id="seriesNameInput" type="text" value="Series 1">
+              </label>
+              <button class="action-button" id="addSeriesButton" type="button" data-i18n="addSeries">추가</button>
+            </div>
+            <div class="series-list" id="seriesList"></div>
             <p class="status" id="statusText">이미지를 업로드하세요.</p>
             <div class="action-row">
               <button class="action-button" id="undoButton" type="button" data-i18n="undo">마지막 삭제</button>
@@ -552,6 +626,7 @@
                 <thead>
                   <tr>
                     <th data-i18n="tableIndex">#</th>
+                    <th data-i18n="tableSeries">Series</th>
                     <th data-i18n="tableX">X</th>
                     <th data-i18n="tableY">Y</th>
                     <th></th>
@@ -594,10 +669,17 @@
       const statusText = document.querySelector("#statusText");
       const calibrationList = document.querySelector("#calibrationList");
       const pointTable = document.querySelector("#pointTable");
+      const seriesList = document.querySelector("#seriesList");
       const modeButtons = [...document.querySelectorAll(".mode-button")];
       const languageSelect = document.querySelector("#languageSelect");
       const xAxisType = document.querySelector("#xAxisType");
       const yAxisType = document.querySelector("#yAxisType");
+      const xScaleType = document.querySelector("#xScaleType");
+      const yScaleType = document.querySelector("#yScaleType");
+      const seriesNameInput = document.querySelector("#seriesNameInput");
+      const addSeriesButton = document.querySelector("#addSeriesButton");
+      const saveProjectButton = document.querySelector("#saveProjectButton");
+      const loadProjectInput = document.querySelector("#loadProjectInput");
       const valueInputs = {
         x1: document.querySelector("#x1Value"),
         x2: document.querySelector("#x2Value"),
@@ -611,6 +693,7 @@
         activePointIndex: null,
         lastPointerImagePoint: null,
         image: null,
+        imageDataUrl: null,
         imageScale: 1,
         imageOffsetX: 0,
         imageOffsetY: 0,
@@ -620,7 +703,15 @@
           y1: null,
           y2: null,
         },
-        points: [],
+        activeSeriesId: "series-1",
+        series: [
+          {
+            id: "series-1",
+            name: "Series 1",
+            color: "#b42318",
+            points: [],
+          },
+        ],
       };
 
       const translations = {
@@ -639,6 +730,10 @@
           tutorialStep6: "Delete 키로 선택한 데이터 포인트를 삭제하고, CSV 다운로드 또는 복사 버튼으로 결과를 저장합니다.",
           imageTitle: "이미지",
           imageHint: "PNG, JPG 같은 그래프 스크린샷을 올릴 수 있습니다.",
+          projectTitle: "프로젝트",
+          saveProject: "프로젝트 저장",
+          loadProject: "프로젝트 불러오기",
+          projectHint: "이미지, 축 설정, 시리즈, 데이터 포인트를 JSON 파일로 저장하고 다시 불러옵니다.",
           calibrationTitle: "1. 축 기준점",
           modeX1: "X축 왼쪽",
           modeX2: "X축 오른쪽",
@@ -653,6 +748,10 @@
           yAxisType: "Y축 타입",
           yAxisNumber: "숫자",
           yAxisDate: "날짜",
+          xScaleType: "X축 스케일",
+          yScaleType: "Y축 스케일",
+          scaleLinear: "선형",
+          scaleLog: "로그",
           x1Label: "X 왼쪽 값",
           x2Label: "X 오른쪽 값",
           y1Label: "Y 아래 값",
@@ -663,7 +762,10 @@
           clear: "전체 삭제",
           downloadCsv: "CSV 다운로드",
           copy: "복사",
+          seriesName: "시리즈 이름",
+          addSeries: "추가",
           tableIndex: "#",
+          tableSeries: "Series",
           tableX: "X",
           tableY: "Y",
           commentsLabel: "댓글",
@@ -685,6 +787,8 @@
           keyboardAdjustHint: "선택한 기준점은 화살표 키로 1px씩, Shift+화살표로 10px씩 미세조정할 수 있습니다.",
           pointAdjustHint: "선택한 데이터 포인트는 화살표 키로 1px씩, Shift+화살표로 10px씩 미세조정할 수 있습니다.",
           deleteKeyHint: "Delete 키로 선택한 데이터 포인트를 삭제할 수 있습니다.",
+          logScaleNeedsPositive: "로그 스케일은 기준값과 데이터 값이 모두 0보다 커야 합니다.",
+          projectLoaded: "프로젝트를 불러왔습니다.",
         },
         en: {
           appTitle: "Graph Value Extractor",
@@ -701,6 +805,10 @@
           tutorialStep6: "Press Delete to remove the selected data point, then save results with Download CSV or Copy.",
           imageTitle: "Image",
           imageHint: "Upload a graph screenshot such as a PNG or JPG.",
+          projectTitle: "Project",
+          saveProject: "Save project",
+          loadProject: "Load project",
+          projectHint: "Save and reload the image, axis settings, series, and data points as a JSON file.",
           calibrationTitle: "1. Axis Reference Points",
           modeX1: "X-axis left",
           modeX2: "X-axis right",
@@ -715,6 +823,10 @@
           yAxisType: "Y-axis type",
           yAxisNumber: "Number",
           yAxisDate: "Date",
+          xScaleType: "X-axis scale",
+          yScaleType: "Y-axis scale",
+          scaleLinear: "Linear",
+          scaleLog: "Log",
           x1Label: "X left value",
           x2Label: "X right value",
           y1Label: "Y bottom value",
@@ -725,7 +837,10 @@
           clear: "Clear all",
           downloadCsv: "Download CSV",
           copy: "Copy",
+          seriesName: "Series name",
+          addSeries: "Add",
           tableIndex: "#",
+          tableSeries: "Series",
           tableX: "X",
           tableY: "Y",
           commentsLabel: "Comments",
@@ -747,6 +862,8 @@
           keyboardAdjustHint: "Use arrow keys to nudge the selected reference point by 1px, or Shift+arrow by 10px.",
           pointAdjustHint: "Use arrow keys to nudge the selected data point by 1px, or Shift+arrow by 10px.",
           deleteKeyHint: "Press Delete to remove the selected data point.",
+          logScaleNeedsPositive: "Log scale requires all reference and data values to be greater than zero.",
+          projectLoaded: "Project loaded.",
         },
       };
 
@@ -869,23 +986,26 @@
       }
 
       function activateNearestPoint(imagePoint) {
-        if (!state.points.length || state.activeCalibration) {
+        if (!allPoints().length || state.activeCalibration) {
           return;
         }
 
-        let nearestIndex = null;
+        let nearest = null;
         let nearestDistance = Infinity;
-        state.points.forEach((point, index) => {
+        allPoints().forEach((point) => {
           const dx = point.image.x - imagePoint.x;
           const dy = point.image.y - imagePoint.y;
           const distance = dx * dx + dy * dy;
           if (distance < nearestDistance) {
             nearestDistance = distance;
-            nearestIndex = index;
+            nearest = point;
           }
         });
 
-        state.activePointIndex = nearestIndex;
+        if (nearest) {
+          state.activeSeriesId = nearest.series.id;
+          state.activePointIndex = nearest.series.points.indexOf(nearest.point);
+        }
       }
 
       function updateMagnifierAtImagePoint(imagePoint, canvasPoint = null) {
@@ -962,26 +1082,28 @@
           magnifierCtx.restore();
         });
 
-        state.points.forEach((point, index) => {
-          const x = (point.image.x - sourceX) * magnifierZoom;
-          const y = (point.image.y - sourceY) * magnifierZoom;
-          if (x < -16 || y < -16 || x > lensSize + 16 || y > lensSize + 16) {
-            return;
-          }
+        state.series.forEach((series) => {
+          series.points.forEach((point, index) => {
+            const x = (point.image.x - sourceX) * magnifierZoom;
+            const y = (point.image.y - sourceY) * magnifierZoom;
+            if (x < -16 || y < -16 || x > lensSize + 16 || y > lensSize + 16) {
+              return;
+            }
 
-          magnifierCtx.save();
-          const isActive = index === state.activePointIndex;
-          magnifierCtx.fillStyle = danger;
-          magnifierCtx.strokeStyle = "#ffffff";
-          magnifierCtx.lineWidth = isActive ? 3 : 2;
-          magnifierCtx.beginPath();
-          magnifierCtx.arc(x, y, isActive ? 7 : 5, 0, Math.PI * 2);
-          magnifierCtx.fill();
-          magnifierCtx.stroke();
-          magnifierCtx.fillStyle = danger;
-          magnifierCtx.font = "12px system-ui";
-          magnifierCtx.fillText(String(index + 1), x + 8, y - 8);
-          magnifierCtx.restore();
+            magnifierCtx.save();
+            const isActive = series.id === state.activeSeriesId && index === state.activePointIndex;
+            magnifierCtx.fillStyle = series.color;
+            magnifierCtx.strokeStyle = "#ffffff";
+            magnifierCtx.lineWidth = isActive ? 3 : 2;
+            magnifierCtx.beginPath();
+            magnifierCtx.arc(x, y, isActive ? 7 : 5, 0, Math.PI * 2);
+            magnifierCtx.fill();
+            magnifierCtx.stroke();
+            magnifierCtx.fillStyle = series.color;
+            magnifierCtx.font = "12px system-ui";
+            magnifierCtx.fillText(String(index + 1), x + 8, y - 8);
+            magnifierCtx.restore();
+          });
         });
 
         magnifierCtx.save();
@@ -998,6 +1120,25 @@
 
       function hasCalibration() {
         return state.calibration.x1 && state.calibration.x2 && state.calibration.y1 && state.calibration.y2;
+      }
+
+      function activeSeries() {
+        return state.series.find((series) => series.id === state.activeSeriesId) || state.series[0];
+      }
+
+      function allPoints() {
+        return state.series.flatMap((series) =>
+          series.points.map((point) => ({
+            point,
+            image: point.image,
+            value: point.value,
+            series,
+          }))
+        );
+      }
+
+      function pointSeries(pointRecord) {
+        return state.series.find((series) => series.points.includes(pointRecord));
       }
 
       function values() {
@@ -1023,6 +1164,17 @@
         return Number(value);
       }
 
+      function interpolateValue(ratio, start, end, scale) {
+        if (scale === "log") {
+          if (start <= 0 || end <= 0) {
+            return NaN;
+          }
+          return 10 ** (Math.log10(start) + ratio * (Math.log10(end) - Math.log10(start)));
+        }
+
+        return start + ratio * (end - start);
+      }
+
       function toDataValue(imagePoint) {
         const cal = state.calibration;
         const val = values();
@@ -1030,8 +1182,8 @@
         const yRatio = (cal.y1.y - imagePoint.y) / (cal.y1.y - cal.y2.y);
 
         return {
-          x: val.x1 + xRatio * (val.x2 - val.x1),
-          y: val.y1 + yRatio * (val.y2 - val.y1),
+          x: interpolateValue(xRatio, val.x1, val.x2, xScaleType.value),
+          y: interpolateValue(yRatio, val.y1, val.y2, yScaleType.value),
         };
       }
 
@@ -1063,27 +1215,36 @@
           return;
         }
 
-        const activePoint = state.activePointIndex !== null ? state.points[state.activePointIndex] : null;
-        state.points.forEach((point) => {
-          point.value = toDataValue(point.image);
+        const series = activeSeries();
+        const activePoint = state.activePointIndex !== null ? series.points[state.activePointIndex] : null;
+        state.series.forEach((item) => {
+          item.points.forEach((point) => {
+            point.value = toDataValue(point.image);
+          });
         });
         sortPointsByX(activePoint);
       }
 
-      function sortPointsByX(activePoint = state.activePointIndex !== null ? state.points[state.activePointIndex] : null) {
-        state.points.sort((a, b) => {
-          const ax = Number.isFinite(a.value.x) ? a.value.x : Infinity;
-          const bx = Number.isFinite(b.value.x) ? b.value.x : Infinity;
-          if (ax !== bx) {
-            return ax - bx;
-          }
+      function sortPointsByX(activePoint = null) {
+        state.series.forEach((series) => {
+          series.points.sort((a, b) => {
+            const ax = Number.isFinite(a.value.x) ? a.value.x : Infinity;
+            const bx = Number.isFinite(b.value.x) ? b.value.x : Infinity;
+            if (ax !== bx) {
+              return ax - bx;
+            }
 
-          const ay = Number.isFinite(a.value.y) ? a.value.y : Infinity;
-          const by = Number.isFinite(b.value.y) ? b.value.y : Infinity;
-          return ay - by;
+            const ay = Number.isFinite(a.value.y) ? a.value.y : Infinity;
+            const by = Number.isFinite(b.value.y) ? b.value.y : Infinity;
+            return ay - by;
+          });
         });
 
-        state.activePointIndex = activePoint ? state.points.indexOf(activePoint) : null;
+        if (activePoint) {
+          const series = pointSeries(activePoint);
+          state.activeSeriesId = series?.id || state.activeSeriesId;
+          state.activePointIndex = series ? series.points.indexOf(activePoint) : null;
+        }
       }
 
       function drawMarker(point, color, label) {
@@ -1154,21 +1315,23 @@
           ctx.restore();
         }
 
-        state.points.forEach((point, index) => {
-          const canvasPoint = imageToCanvas(point.image);
-          const isActive = index === state.activePointIndex;
-          ctx.save();
-          ctx.fillStyle = danger;
-          ctx.strokeStyle = "#ffffff";
-          ctx.lineWidth = isActive ? 3 : 2;
-          ctx.beginPath();
-          ctx.arc(canvasPoint.x, canvasPoint.y, isActive ? 7 : 5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-          ctx.fillStyle = text;
-          ctx.font = "12px system-ui";
-          ctx.fillText(String(index + 1), canvasPoint.x + 8, canvasPoint.y - 8);
-          ctx.restore();
+        state.series.forEach((series) => {
+          series.points.forEach((point, index) => {
+            const canvasPoint = imageToCanvas(point.image);
+            const isActive = series.id === state.activeSeriesId && index === state.activePointIndex;
+            ctx.save();
+            ctx.fillStyle = series.color;
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = isActive ? 3 : 2;
+            ctx.beginPath();
+            ctx.arc(canvasPoint.x, canvasPoint.y, isActive ? 7 : 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = text;
+            ctx.font = "12px system-ui";
+            ctx.fillText(String(index + 1), canvasPoint.x + 8, canvasPoint.y - 8);
+            ctx.restore();
+          });
         });
       }
 
@@ -1191,7 +1354,7 @@
 
         if (state.mode === "data") {
           const pointHint = state.activePointIndex !== null ? ` ${t("pointAdjustHint")} ${t("deleteKeyHint")}` : "";
-          statusText.innerHTML = `${t("dataModeStatus")} <strong>${state.points.length}</strong> ${t("countSuffix")}${pointHint}`;
+          statusText.innerHTML = `${t("dataModeStatus")} <strong>${activeSeries().points.length}</strong> ${t("countSuffix")}${pointHint}`;
           return;
         }
 
@@ -1205,16 +1368,36 @@
 
       function renderTable() {
         pointTable.innerHTML = "";
-        state.points.forEach((point, index) => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${formatXValue(point.value.x)}</td>
-            <td>${formatYValue(point.value.y)}</td>
-            <td><button class="delete-button" type="button" data-index="${index}">${t("deletePoint")}</button></td>
+        state.series.forEach((series) => {
+          series.points.forEach((point, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${index + 1}</td>
+              <td>${series.name}</td>
+              <td>${formatXValue(point.value.x)}</td>
+              <td>${formatYValue(point.value.y)}</td>
+              <td><button class="delete-button" type="button" data-series="${series.id}" data-index="${index}">${t("deletePoint")}</button></td>
+            `;
+            row.dataset.seriesId = series.id;
+            row.dataset.pointIndex = String(index);
+            pointTable.append(row);
+          });
+        });
+      }
+
+      function renderSeriesList() {
+        seriesList.innerHTML = "";
+        state.series.forEach((series) => {
+          const button = document.createElement("button");
+          button.className = "series-button";
+          button.type = "button";
+          button.dataset.seriesId = series.id;
+          button.classList.toggle("active", series.id === state.activeSeriesId);
+          button.innerHTML = `
+            <span class="series-swatch" style="color: ${series.color}"></span>
+            <span>${series.name} (${series.points.length})</span>
           `;
-          row.dataset.pointIndex = String(index);
-          pointTable.append(row);
+          seriesList.append(button);
         });
       }
 
@@ -1246,15 +1429,27 @@
         draw();
         updateStatus();
         renderCalibrationList();
+        renderSeriesList();
         renderTable();
       }
 
       function csvText() {
-        const rows = [["index", "x", "y"]];
-        state.points.forEach((point, index) => {
-          rows.push([index + 1, formatXValue(point.value.x), formatYValue(point.value.y)]);
+        const rows = [["series", "index", "x", "y"]];
+        state.series.forEach((series) => {
+          series.points.forEach((point, index) => {
+            rows.push([series.name, index + 1, formatXValue(point.value.x), formatYValue(point.value.y)]);
+          });
         });
-        return rows.map((row) => row.join(",")).join("\n");
+        return rows
+          .map((row) =>
+            row
+              .map((cell) => {
+                const text = String(cell);
+                return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+              })
+              .join(",")
+          )
+          .join("\n");
       }
 
       function updateXAxisInputs() {
@@ -1303,6 +1498,91 @@
         refresh();
       }
 
+      function projectData() {
+        return {
+          version: 1,
+          imageDataUrl: state.imageDataUrl,
+          axis: {
+            xType: xAxisType.value,
+            yType: yAxisType.value,
+            xScale: xScaleType.value,
+            yScale: yScaleType.value,
+            values: {
+              x1: valueInputs.x1.value,
+              x2: valueInputs.x2.value,
+              y1: valueInputs.y1.value,
+              y2: valueInputs.y2.value,
+            },
+          },
+          calibration: state.calibration,
+          activeSeriesId: state.activeSeriesId,
+          series: state.series,
+        };
+      }
+
+      function downloadText(filename, text, type) {
+        const blob = new Blob([text], { type });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+
+      function loadImageFromDataUrl(dataUrl) {
+        return new Promise((resolve, reject) => {
+          if (!dataUrl) {
+            state.image = null;
+            state.imageDataUrl = null;
+            emptyState.hidden = false;
+            resolve();
+            return;
+          }
+
+          const image = new Image();
+          image.onload = () => {
+            state.image = image;
+            state.imageDataUrl = dataUrl;
+            emptyState.hidden = true;
+            resolve();
+          };
+          image.onerror = reject;
+          image.src = dataUrl;
+        });
+      }
+
+      async function loadProject(project) {
+        xAxisType.value = project.axis?.xType || "number";
+        yAxisType.value = project.axis?.yType || "number";
+        xScaleType.value = project.axis?.xScale || "linear";
+        yScaleType.value = project.axis?.yScale || "linear";
+        updateXAxisInputs();
+        updateYAxisInputs();
+
+        valueInputs.x1.value = project.axis?.values?.x1 ?? "0";
+        valueInputs.x2.value = project.axis?.values?.x2 ?? "10";
+        valueInputs.y1.value = project.axis?.values?.y1 ?? "0";
+        valueInputs.y2.value = project.axis?.values?.y2 ?? "10";
+
+        state.calibration = project.calibration || { x1: null, x2: null, y1: null, y2: null };
+        state.series = Array.isArray(project.series) && project.series.length
+          ? project.series.map((series, index) => ({
+              id: series.id || `series-${index + 1}`,
+              name: series.name || `Series ${index + 1}`,
+              color: series.color || ["#b42318", "#0f766e", "#2563eb", "#9333ea"][index % 4],
+              points: Array.isArray(series.points) ? series.points : [],
+            }))
+          : state.series;
+        state.activeSeriesId = project.activeSeriesId || state.series[0].id;
+        state.activeCalibration = null;
+        state.activePointIndex = null;
+        state.lastPointerImagePoint = null;
+        await loadImageFromDataUrl(project.imageDataUrl);
+        recalculatePoints();
+        refresh();
+        statusText.textContent = t("projectLoaded");
+      }
+
       setLanguage(savedLanguage);
       setTheme(savedTheme ? savedTheme === "dark" : prefersDark);
       resizeCanvas();
@@ -1328,24 +1608,79 @@
 
       xAxisType.addEventListener("change", updateXAxisInputs);
       yAxisType.addEventListener("change", updateYAxisInputs);
+      xScaleType.addEventListener("change", () => {
+        recalculatePoints();
+        refresh();
+      });
+      yScaleType.addEventListener("change", () => {
+        recalculatePoints();
+        refresh();
+      });
+
+      saveProjectButton.addEventListener("click", () => {
+        downloadText(
+          "graph-project.json",
+          JSON.stringify(projectData(), null, 2),
+          "application/json;charset=utf-8"
+        );
+      });
+
+      loadProjectInput.addEventListener("change", async () => {
+        const file = loadProjectInput.files[0];
+        if (!file) return;
+        const text = await file.text();
+        await loadProject(JSON.parse(text));
+        loadProjectInput.value = "";
+      });
+
+      seriesList.addEventListener("click", (event) => {
+        const button = event.target.closest(".series-button");
+        if (!button) return;
+        state.activeSeriesId = button.dataset.seriesId;
+        state.activePointIndex = null;
+        refresh();
+      });
+
+      addSeriesButton.addEventListener("click", () => {
+        const nextIndex = state.series.length + 1;
+        const colors = ["#b42318", "#0f766e", "#2563eb", "#9333ea", "#ca8a04", "#db2777"];
+        const id = `series-${Date.now()}`;
+        state.series.push({
+          id,
+          name: seriesNameInput.value.trim() || `Series ${nextIndex}`,
+          color: colors[state.series.length % colors.length],
+          points: [],
+        });
+        state.activeSeriesId = id;
+        state.activePointIndex = null;
+        seriesNameInput.value = `Series ${nextIndex + 1}`;
+        refresh();
+      });
 
       imageInput.addEventListener("change", () => {
         const file = imageInput.files[0];
         if (!file) return;
 
+        const reader = new FileReader();
         const image = new Image();
         image.onload = () => {
           state.image = image;
+          state.imageDataUrl = image.src;
           state.activeCalibration = null;
           state.activePointIndex = null;
           state.lastPointerImagePoint = null;
           state.calibration = { x1: null, x2: null, y1: null, y2: null };
-          state.points = [];
+          state.series.forEach((series) => {
+            series.points = [];
+          });
           emptyState.hidden = true;
           setMode("x1");
           refresh();
         };
-        image.src = URL.createObjectURL(file);
+        reader.addEventListener("load", () => {
+          image.src = reader.result;
+        });
+        reader.readAsDataURL(file);
       });
 
       canvas.addEventListener("click", (event) => {
@@ -1366,11 +1701,12 @@
             updateStatus();
             return;
           }
-          state.points.push({
+          const series = activeSeries();
+          series.points.push({
             image: imagePoint,
             value: toDataValue(imagePoint),
           });
-          sortPointsByX(state.points[state.points.length - 1]);
+          sortPointsByX(series.points[series.points.length - 1]);
           state.activeCalibration = null;
           refresh();
           updateMagnifierAtImagePoint(imagePoint);
@@ -1410,6 +1746,10 @@
       });
 
       window.addEventListener("keydown", (event) => {
+        if (["INPUT", "SELECT", "TEXTAREA"].includes(event.target.tagName)) {
+          return;
+        }
+
         const keys = {
           ArrowLeft: [-1, 0],
           ArrowRight: [1, 0],
@@ -1421,12 +1761,13 @@
           activateNearestPoint(state.lastPointerImagePoint);
         }
         const activeCalibrationPoint = state.activeCalibration ? state.calibration[state.activeCalibration] : null;
+        const series = activeSeries();
         const activeDataPoint =
-          state.activePointIndex !== null ? state.points[state.activePointIndex]?.image : null;
+          state.activePointIndex !== null ? series.points[state.activePointIndex]?.image : null;
 
-        if ((event.key === "Delete" || event.key === "Backspace") && state.image && activeDataPoint) {
+        if (event.key === "Delete" && state.image && activeDataPoint) {
           event.preventDefault();
-          state.points.splice(state.activePointIndex, 1);
+          series.points.splice(state.activePointIndex, 1);
           state.activePointIndex = null;
           refresh();
           updateMagnifierAtImagePoint(state.lastPointerImagePoint || activeDataPoint);
@@ -1444,7 +1785,7 @@
         activePoint.x = Math.max(0, Math.min(state.image.width, activePoint.x + delta[0] * step));
         activePoint.y = Math.max(0, Math.min(state.image.height, activePoint.y + delta[1] * step));
         if (activeDataPoint && hasCalibration()) {
-          const activePointRecord = state.points[state.activePointIndex];
+          const activePointRecord = series.points[state.activePointIndex];
           activePointRecord.value = toDataValue(activeDataPoint);
           sortPointsByX(activePointRecord);
         } else {
@@ -1458,11 +1799,15 @@
         const button = event.target.closest(".delete-button");
         if (button) {
           const deletedIndex = Number(button.dataset.index);
-          state.points.splice(deletedIndex, 1);
-          if (state.activePointIndex === deletedIndex) {
-            state.activePointIndex = null;
-          } else if (state.activePointIndex > deletedIndex) {
-            state.activePointIndex -= 1;
+          const series = state.series.find((item) => item.id === button.dataset.series);
+          if (!series) return;
+          series.points.splice(deletedIndex, 1);
+          if (series.id === state.activeSeriesId) {
+            if (state.activePointIndex === deletedIndex) {
+              state.activePointIndex = null;
+            } else if (state.activePointIndex > deletedIndex) {
+              state.activePointIndex -= 1;
+            }
           }
           sortPointsByX();
           refresh();
@@ -1471,43 +1816,40 @@
 
         const row = event.target.closest("tr");
         if (row) {
+          state.activeSeriesId = row.dataset.seriesId;
           state.activePointIndex = Number(row.dataset.pointIndex);
           state.activeCalibration = null;
           setMode("data");
-          updateMagnifierAtImagePoint(state.points[state.activePointIndex].image);
+          updateMagnifierAtImagePoint(activeSeries().points[state.activePointIndex].image);
         }
         refresh();
       });
 
       document.querySelector("#undoButton").addEventListener("click", () => {
-        state.points.pop();
-        if (state.activePointIndex !== null && state.activePointIndex >= state.points.length) {
-          state.activePointIndex = state.points.length ? state.points.length - 1 : null;
+        const series = activeSeries();
+        series.points.pop();
+        if (state.activePointIndex !== null && state.activePointIndex >= series.points.length) {
+          state.activePointIndex = series.points.length ? series.points.length - 1 : null;
         }
         sortPointsByX();
         refresh();
       });
 
       document.querySelector("#clearButton").addEventListener("click", () => {
-        state.points = [];
+        activeSeries().points = [];
         state.activePointIndex = null;
         sortPointsByX();
         refresh();
       });
 
       document.querySelector("#csvButton").addEventListener("click", () => {
-        const blob = new Blob([csvText()], { type: "text/csv;charset=utf-8" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "graph-points.csv";
-        link.click();
-        URL.revokeObjectURL(link.href);
+        downloadText("graph-points.csv", csvText(), "text/csv;charset=utf-8");
       });
 
       document.querySelector("#copyButton").addEventListener("click", async () => {
         try {
           await navigator.clipboard.writeText(csvText());
-          statusText.innerHTML = `${t("copied")} <strong>${state.points.length}</strong> ${t("countSuffix")}`;
+          statusText.innerHTML = `${t("copied")} <strong>${allPoints().length}</strong> ${t("countSuffix")}`;
         } catch {
           statusText.textContent = t("clipboardDenied");
         }
