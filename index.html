@@ -530,6 +530,10 @@
 
           <section class="section">
             <h2 data-i18n="projectTitle">프로젝트</h2>
+            <label>
+              <span data-i18n="projectName">프로젝트 이름</span>
+              <input id="projectNameInput" type="text" value="graph-project">
+            </label>
             <div class="action-row">
               <button class="action-button" id="saveProjectButton" type="button" data-i18n="saveProject">프로젝트 저장</button>
               <label class="action-button" for="loadProjectInput" data-i18n="loadProject">프로젝트 불러오기</label>
@@ -680,6 +684,7 @@
       const addSeriesButton = document.querySelector("#addSeriesButton");
       const saveProjectButton = document.querySelector("#saveProjectButton");
       const loadProjectInput = document.querySelector("#loadProjectInput");
+      const projectNameInput = document.querySelector("#projectNameInput");
       const valueInputs = {
         x1: document.querySelector("#x1Value"),
         x2: document.querySelector("#x2Value"),
@@ -731,6 +736,7 @@
           imageTitle: "이미지",
           imageHint: "PNG, JPG 같은 그래프 스크린샷을 올릴 수 있습니다.",
           projectTitle: "프로젝트",
+          projectName: "프로젝트 이름",
           saveProject: "프로젝트 저장",
           loadProject: "프로젝트 불러오기",
           projectHint: "이미지, 축 설정, 시리즈, 데이터 포인트를 JSON 파일로 저장하고 다시 불러옵니다.",
@@ -806,6 +812,7 @@
           imageTitle: "Image",
           imageHint: "Upload a graph screenshot such as a PNG or JPG.",
           projectTitle: "Project",
+          projectName: "Project name",
           saveProject: "Save project",
           loadProject: "Load project",
           projectHint: "Save and reload the image, axis settings, series, and data points as a JSON file.",
@@ -1501,6 +1508,7 @@
       function projectData() {
         return {
           version: 1,
+          name: projectNameInput.value.trim() || "graph-project",
           imageDataUrl: state.imageDataUrl,
           axis: {
             xType: xAxisType.value,
@@ -1527,6 +1535,14 @@
         link.download = filename;
         link.click();
         URL.revokeObjectURL(link.href);
+      }
+
+      function safeFilename(name) {
+        const cleaned = name
+          .trim()
+          .replace(/[^a-zA-Z0-9가-힣._-]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+        return cleaned || "graph-project";
       }
 
       function loadImageFromDataUrl(dataUrl) {
@@ -1563,6 +1579,7 @@
         valueInputs.x2.value = project.axis?.values?.x2 ?? "10";
         valueInputs.y1.value = project.axis?.values?.y1 ?? "0";
         valueInputs.y2.value = project.axis?.values?.y2 ?? "10";
+        projectNameInput.value = project.name || "graph-project";
 
         state.calibration = project.calibration || { x1: null, x2: null, y1: null, y2: null };
         state.series = Array.isArray(project.series) && project.series.length
@@ -1618,8 +1635,9 @@
       });
 
       saveProjectButton.addEventListener("click", () => {
+        const filename = `${safeFilename(projectNameInput.value)}.json`;
         downloadText(
-          "graph-project.json",
+          filename,
           JSON.stringify(projectData(), null, 2),
           "application/json;charset=utf-8"
         );
