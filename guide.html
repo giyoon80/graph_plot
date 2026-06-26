@@ -10,34 +10,87 @@
   <body>
     <div class="page">
       <header class="topbar">
-        <a class="brand" href="index.html">그래프 값 추출기</a>
-        <a class="back" href="index.html">도구로 돌아가기</a>
+        <a class="brand" href="index.html" data-language-link data-i18n="brand">그래프 값 추출기</a>
+        <a class="back" href="index.html" data-language-link data-i18n="back">도구로 돌아가기</a>
       </header>
       <main>
-        <h1>그래프 값 추출 가이드</h1>
-        <p class="lead">스크린샷 속 그래프를 표 형식 데이터로 바꿀 때 정확도를 높이는 방법을 정리했습니다. 이 도구는 이미지를 서버에 업로드하지 않고 브라우저에서 좌표를 계산합니다.</p>
+        <h1 data-i18n="heading">그래프 값 추출 가이드</h1>
+        <p class="lead" data-i18n="lead">아래 순서대로 화면의 버튼과 입력칸을 사용하면 그래프 스크린샷을 CSV 데이터로 정리할 수 있습니다. 모든 좌표 계산은 브라우저에서 수행됩니다.</p>
 
-        <h2>1. 축 기준점을 먼저 정확히 잡으세요</h2>
-        <p>X축과 Y축의 두 끝값이 보이는 눈금선을 선택합니다. 축 선 자체가 기울었거나 이미지가 잘린 경우보다, 값이 분명히 표시된 눈금선 위의 교차점을 기준으로 잡는 편이 좋습니다. 두 기준점의 거리가 멀수록 클릭 오차의 영향이 줄어듭니다.</p>
-        <p>보정 후 데이터 점을 클릭하기 전에, 그래프에서 값을 이미 알고 있는 점 하나를 시험으로 찍어 결과가 맞는지 확인하세요. 어긋나면 기준점부터 다시 지정하는 것이 가장 빠릅니다.</p>
+        <h2 data-i18n="step1Heading">1. 이미지 선택</h2>
+        <p data-i18n="step1Body1">왼쪽 패널에서 이미지 선택을 누르고 그래프 스크린샷을 고릅니다. 축, 눈금, 값 표기가 모두 보이는 이미지를 사용하세요. 축 일부가 잘렸거나 눈금값이 보이지 않으면 정확한 값으로 환산할 수 없습니다.</p>
+        <p data-i18n="step1Body2">이미지가 오른쪽 작업 영역에 표시되면 X축 왼쪽 모드가 자동으로 선택됩니다. 이제 축의 위치를 이미지에서 지정합니다.</p>
 
-        <h2>2. 선형 스케일과 로그 스케일을 구분하세요</h2>
-        <p>눈금 간격이 같은 양만큼 증가하면 선형 스케일입니다. 1, 10, 100, 1,000처럼 배수로 증가하면 로그 스케일을 선택해야 합니다. 로그 스케일에서는 기준값과 데이터값이 모두 양수여야 하며, 0 또는 음수 값이 포함된 축에는 사용할 수 없습니다.</p>
+        <h2 data-i18n="step2Heading">2. 축 기준점 4개 지정</h2>
+        <p data-i18n="step2Body">X축 왼쪽, X축 오른쪽, Y축 아래, Y축 위 버튼을 차례로 누르고 해당 축의 눈금선 위를 클릭합니다. 예를 들어 X축 왼쪽 값이 0인 눈금선과 X축 오른쪽 값이 10인 눈금선을 지정합니다.</p>
 
-        <h2>3. 날짜 축은 표시 형식을 확인하세요</h2>
-        <p>X축 또는 Y축이 날짜인 경우, 양 끝 기준값을 실제 날짜로 입력합니다. 그래프의 날짜 표시가 월/일인지 일/월인지 먼저 확인하세요. 잘못 해석하면 모든 추출 값이 일정하게 어긋납니다.</p>
+        <h2 data-i18n="step3Heading">3. 축 값과 스케일 입력</h2>
+        <p data-i18n="step3Body">축 타입을 숫자 또는 날짜로 선택한 뒤 X 왼쪽 값, X 오른쪽 값, Y 아래 값, Y 위 값을 원본 그래프의 눈금값과 동일하게 입력합니다. 날짜 축은 양 끝의 실제 날짜를 입력합니다. 눈금이 일정한 간격이면 선형, 1·10·100처럼 배수로 커지면 로그를 선택하며 로그 값은 모두 0보다 커야 합니다.</p>
 
-        <h2>4. 여러 시리즈는 색상과 이름으로 분리하세요</h2>
-        <p>한 그래프에 여러 선이나 막대가 있다면 시리즈를 추가하고 의미 있는 이름을 붙인 뒤 한 시리즈씩 추출합니다. 추출 후 표에서 시리즈별로 정렬하면 누락되거나 다른 선을 잘못 클릭한 점을 쉽게 찾을 수 있습니다.</p>
+        <h2 data-i18n="step4Heading">4. 시리즈를 선택하고 데이터 점 찍기</h2>
+        <p data-i18n="step4Body">결과 영역에서 시리즈 이름을 정합니다. 선이 여러 개면 추가를 눌러 시리즈를 만든 뒤 작업할 시리즈를 선택합니다. 데이터 찍기 버튼을 누르고 그래프의 점 또는 선 위를 클릭하면 표에 X/Y 값이 추가됩니다. 모든 시리즈는 동일한 X축과 Y축 기준을 공유하므로, 좌·우처럼 스케일이 다른 Y축이 있는 그래프는 축마다 별도 프로젝트로 추출하세요.</p>
 
-        <h2>5. CSV를 저장하기 전 검증하세요</h2>
-        <p>처음·중간·마지막 지점의 값을 원본 축과 비교하세요. 확대경과 방향키를 이용해 점을 1px 단위로 조정할 수 있습니다. 검증이 끝난 데이터만 CSV로 내려받아 Excel 또는 Google Sheets에서 후속 분석에 사용하세요.</p>
+        <h2 data-i18n="step5Heading">5. 점을 검증하고 결과 저장</h2>
+        <p data-i18n="step5Body">표의 처음·중간·마지막 값을 원본 그래프와 비교합니다. 이미지 위에 마우스를 올리면 확대경이 보이며, 선택한 점은 화살표 키로 1px, Shift+화살표로 10px 움직일 수 있습니다. 잘못된 점은 마지막 삭제 또는 Delete 키로 지웁니다.</p>
 
-        <div class="notice"><p>이 도구의 계산 결과는 원본 이미지의 해상도와 클릭 위치에 영향을 받습니다. 연구·재무·안전 관련 의사결정에는 원본 데이터나 공식 자료로 결과를 다시 확인하세요.</p></div>
+        <h2 data-i18n="exampleHeading">예시: 날짜별 성장 그래프 추출</h2>
+        <p data-i18n="exampleBody1">월별 또는 일별 성장 그래프라면 X축 타입을 날짜로 선택합니다. 예를 들어 왼쪽 눈금이 2024-01-01이고 오른쪽 눈금이 2024-12-31이면 각각 X 왼쪽 값과 X 오른쪽 값에 입력합니다. Y축은 숫자 타입으로 두고, 아래·위 눈금값을 입력합니다.</p>
+        <p data-i18n="exampleBody2">1, 10, 100, 1,000처럼 값이 배수로 증가하는 성장 그래프는 해당 축의 스케일을 로그로 바꿉니다. 점을 세 개 정도 먼저 찍어 결과가 원본 눈금과 맞는지 확인한 다음 나머지 점을 추출하세요.</p>
+
+        <h2 data-i18n="faqHeading">자주 묻는 질문</h2>
+        <h3 data-i18n="faq1Question">기준점을 바꾸면 이미 찍은 데이터 점은 어떻게 되나요?</h3>
+        <p data-i18n="faq1Answer">데이터 점의 이미지 위치는 유지되고, 새 기준점과 축 값으로 X/Y 결과가 다시 계산됩니다. 기준점을 수정한 뒤 표의 값을 다시 확인하세요.</p>
+        <h3 data-i18n="faq2Question">축 기준점 네 개를 모두 찍어야 하나요?</h3>
+        <p data-i18n="faq2Answer">네. X축 두 개와 Y축 두 개가 모두 설정되어야 데이터 점의 X/Y 값을 계산할 수 있습니다.</p>
+        <h3 data-i18n="faq3Question">프로젝트 저장 파일에는 무엇이 들어 있나요?</h3>
+        <p data-i18n="faq3Answer">프로젝트 JSON에는 선택한 이미지, 축 타입·스케일·값, 기준점, 시리즈, 데이터 점이 포함됩니다. 같은 파일을 불러오면 중단한 작업을 이어갈 수 있습니다.</p>
+
+        <div class="notice"><p data-i18n="notice">작업을 이어서 하려면 프로젝트 이름을 정한 뒤 프로젝트 저장으로 JSON 파일을 받으세요. 나중에 프로젝트 불러오기에서 같은 파일을 열면 이미지·축 설정·시리즈·데이터 점이 복원됩니다. 최종 결과는 CSV 다운로드 또는 복사로 내보냅니다.</p></div>
       </main>
       <footer class="site-footer">
-        <a href="about.html">서비스 소개</a><a href="privacy.html">개인정보처리방침</a><a href="terms.html">이용약관</a><a href="https://github.com/giyoon80/graph_plot/issues">문의 및 오류 제보</a>
+        <a href="about.html" data-language-link data-i18n="about">서비스 소개</a><a href="privacy.html" data-language-link data-i18n="privacy">개인정보처리방침</a><a href="terms.html" data-language-link data-i18n="terms">이용약관</a><a href="https://github.com/giyoon80/graph_plot/issues" data-i18n="contact">문의 및 오류 제보</a>
       </footer>
     </div>
+    <script>
+      window.infoTranslations = {
+        en: {
+          title: "Graph Value Extraction Guide", brand: "Graph Value Extractor", back: "Back to tool", heading: "Graph Value Extraction Guide",
+          lead: "Follow these steps to turn a graph screenshot into CSV data using the controls and fields on the page. All coordinate calculations happen in your browser.",
+          step1Heading: "1. Choose an image", step1Body1: "In the left panel, select Choose image and pick a graph screenshot. Use an image where the axes, ticks, and value labels are all visible. Values cannot be calculated accurately when an axis is cropped or its tick values are missing.", step1Body2: "When the image appears in the workspace on the right, X-axis left mode is selected automatically. You can now mark the axes on the image.",
+          step2Heading: "2. Mark four axis reference points", step2Body: "Select X-axis left, X-axis right, Y-axis bottom, and Y-axis top in order, then click the corresponding tick line on each axis. For example, mark the X-axis tick at 0 on the left and the tick at 10 on the right.",
+          step3Heading: "3. Enter axis values and scale", step3Body: "Select Number or Date for each axis, then enter the same values shown on the original graph for X left, X right, Y bottom, and Y top. For a date axis, enter the actual dates at both ends. Use Linear for evenly spaced ticks, or Log for values growing by multiples such as 1, 10, and 100; log values must all be greater than zero.",
+          step4Heading: "4. Select a series and mark data points", step4Body: "Set a series name in Results. For multiple lines, select Add to create a series, then choose the series you are working on. Select Data points and click a point or line on the graph to add its X/Y value to the table. All series share the same X- and Y-axis calibration, so extract a dual-Y-axis graph in separate projects for each axis scale.",
+          step5Heading: "5. Verify points and save results", step5Body: "Compare the first, middle, and last table values with the original graph. Hover over the image to show the magnifier. Move a selected point by 1px with arrow keys, or 10px with Shift+arrow. Remove an incorrect point with Undo last or Delete.",
+          exampleHeading: "Example: Extracting a date-based growth graph", exampleBody1: "For a monthly or daily growth graph, select Date as the X-axis type. For example, if the left tick is 2024-01-01 and the right tick is 2024-12-31, enter them as the X left and X right values. Keep the Y axis as Number and enter its bottom and top tick values.", exampleBody2: "For a growth graph whose values increase by multiples such as 1, 10, 100, and 1,000, set that axis scale to Log. Mark about three points first and compare them with the original ticks before extracting the rest.",
+          faqHeading: "Frequently asked questions", faq1Question: "What happens to existing data points when I change a reference point?", faq1Answer: "Their image positions stay the same, and their X/Y results are recalculated with the new reference points and axis values. Check the table again after changing calibration.", faq2Question: "Do I need to mark all four axis reference points?", faq2Answer: "Yes. Both X-axis points and both Y-axis points must be set before X/Y values can be calculated.", faq3Question: "What does a saved project contain?", faq3Answer: "The project JSON contains the selected image, axis types, scales and values, reference points, series, and data points. Load the same file to continue where you stopped.",
+          notice: "To continue later, set a project name and use Save project to download a JSON file. Loading that file restores the image, axis settings, series, and data points. Export final results with Download CSV or Copy.", about: "About", privacy: "Privacy policy", terms: "Terms of use", contact: "Contact and report an issue"
+        },
+        ja: {
+          title: "グラフ値抽出ガイド", brand: "グラフ値抽出ツール", back: "ツールに戻る", heading: "グラフ値抽出ガイド",
+          lead: "画面上のボタンと入力欄を次の順で使うと、グラフのスクリーンショットをCSVデータに整理できます。座標計算はすべてブラウザ内で行われます。",
+          step1Heading: "1. 画像を選択する", step1Body1: "左側の「画像を選択」からグラフのスクリーンショットを選びます。軸、目盛り、値の表記がすべて見える画像を使用してください。軸が切れていたり目盛り値が見えない場合は、正確な値を計算できません。", step1Body2: "画像が右の作業エリアに表示されると、X軸の左モードが自動的に選択されます。続けて画像上の軸を指定します。",
+          step2Heading: "2. 軸の基準点を4つ指定する", step2Body: "X軸の左、X軸の右、Y軸の下、Y軸の上を順に選び、各軸の対応する目盛り線をクリックします。たとえば、左のX軸の0の目盛りと右の10の目盛りを指定します。",
+          step3Heading: "3. 軸の値とスケールを入力する", step3Body: "各軸の種類で数値または日付を選び、X軸左・X軸右・Y軸下・Y軸上に元のグラフと同じ値を入力します。日付軸では両端の実際の日付を入力します。目盛りが等間隔なら線形、1・10・100のように倍率で増えるなら対数を選びます。対数の値はすべて0より大きい必要があります。",
+          step4Heading: "4. 系列を選びデータポイントを指定する", step4Body: "結果で系列名を設定します。複数の線がある場合は「追加」で系列を作成し、作業する系列を選びます。「データポイント」を選択してグラフ上の点または線をクリックすると、表にX/Y値が追加されます。すべての系列は同じX軸・Y軸の基準を共有するため、左右でスケールが異なるY軸のグラフは軸ごとに別のプロジェクトで抽出してください。",
+          step5Heading: "5. 点を確認して結果を保存する", step5Body: "表の最初・中央・最後の値を元のグラフと比較します。画像上にマウスを置くと拡大鏡が表示されます。選択した点は矢印キーで1px、Shift+矢印キーで10px移動できます。間違った点は「最後を元に戻す」またはDeleteで削除します。",
+          exampleHeading: "例: 日付別の成長グラフを抽出する", exampleBody1: "月別または日別の成長グラフでは、X軸の種類に日付を選びます。たとえば左の目盛りが2024-01-01、右の目盛りが2024-12-31なら、それぞれX軸左とX軸右の値に入力します。Y軸は数値のままにして、下と上の目盛り値を入力します。", exampleBody2: "1、10、100、1,000のように値が倍率で増える成長グラフでは、その軸のスケールを対数に設定します。まず3点程度を指定して元の目盛りと一致するか確認してから、残りの点を抽出してください。",
+          faqHeading: "よくある質問", faq1Question: "基準点を変更すると、すでに指定したデータポイントはどうなりますか？", faq1Answer: "データポイントの画像上の位置は維持され、新しい基準点と軸の値でX/Yの結果が再計算されます。調整を変更した後は表の値をもう一度確認してください。", faq2Question: "軸の基準点は4つすべて指定する必要がありますか？", faq2Answer: "はい。X軸の2点とY軸の2点がすべて設定されてから、X/Y値を計算できます。", faq3Question: "保存したプロジェクトには何が含まれますか？", faq3Answer: "プロジェクトJSONには選択した画像、軸の種類・スケール・値、基準点、系列、データポイントが含まれます。同じファイルを読み込むと中断した作業を続けられます。",
+          notice: "あとで作業を続ける場合は、プロジェクト名を設定して「プロジェクトを保存」を使いJSONファイルを保存します。そのファイルを読み込むと、画像、軸設定、系列、データポイントが復元されます。最終結果はCSVダウンロードまたはコピーで出力します。", about: "サービスについて", privacy: "プライバシーポリシー", terms: "利用規約", contact: "お問い合わせ・不具合報告"
+        },
+        "zh-CN": {
+          title: "图表数值提取指南", brand: "图表数值提取器", back: "返回工具", heading: "图表数值提取指南",
+          lead: "按以下顺序使用页面中的按钮和输入框，即可将图表截图整理为 CSV 数据。所有坐标计算都在浏览器中完成。",
+          step1Heading: "1. 选择图像", step1Body1: "在左侧面板点击“选择图像”，然后选择图表截图。请使用坐标轴、刻度和数值标签均清晰可见的图像。坐标轴被裁切或看不到刻度数值时，无法准确计算数值。", step1Body2: "图像显示在右侧工作区后，系统会自动选中 X 轴左侧模式。接下来可在图像上标记坐标轴。",
+          step2Heading: "2. 标记四个坐标轴参考点", step2Body: "依次选择 X 轴左侧、X 轴右侧、Y 轴底部和 Y 轴顶部，然后点击每个坐标轴对应的刻度线。例如，可标记左侧 X 轴数值为 0 的刻度和右侧数值为 10 的刻度。",
+          step3Heading: "3. 输入坐标轴数值和刻度", step3Body: "为每个坐标轴选择数值或日期类型，然后在 X 轴左侧、X 轴右侧、Y 轴底部和 Y 轴顶部输入与原始图表相同的数值。日期轴应输入两端的实际日期。刻度均匀递增时选线性；数值按 1、10、100 这类倍数增长时选对数，且所有对数值必须大于零。",
+          step4Heading: "4. 选择数据系列并标记数据点", step4Body: "在结果区域设置数据系列名称。若有多条线，请点击“添加”创建数据系列，然后选择正在处理的系列。选择“数据点”后，点击图表上的点或线，即可将其 X/Y 数值添加到表格。所有数据系列共用同一套 X 轴和 Y 轴校准，因此对于左右 Y 轴刻度不同的图表，请按每个轴刻度分别使用项目提取。",
+          step5Heading: "5. 验证点位并保存结果", step5Body: "将表格中的起点、中间点和终点数值与原始图表比较。将鼠标悬停在图像上可显示放大镜。使用方向键可将选中点移动 1px，按 Shift+方向键可移动 10px。使用“撤销上一步”或 Delete 删除错误点。",
+          exampleHeading: "示例：提取按日期统计的增长图", exampleBody1: "对于按月或按日的增长图，请将 X 轴类型设为日期。例如，左侧刻度为 2024-01-01、右侧刻度为 2024-12-31 时，分别输入到 X 轴左侧和 X 轴右侧数值。Y 轴保持数值类型，并输入底部和顶部刻度数值。", exampleBody2: "对于数值按 1、10、100、1,000 这类倍数增长的图表，请将该轴刻度设为对数。先标记约三个点并与原始刻度核对，再提取其余点。",
+          faqHeading: "常见问题", faq1Question: "更改参考点后，已标记的数据点会怎样？", faq1Answer: "数据点在图像中的位置会保持不变，并会根据新的参考点和坐标轴数值重新计算 X/Y 结果。修改校准后请再次检查表格。", faq2Question: "必须标记所有四个坐标轴参考点吗？", faq2Answer: "是的。必须设置两个 X 轴点和两个 Y 轴点，才能计算 X/Y 数值。", faq3Question: "保存的项目包含什么？", faq3Answer: "项目 JSON 包含所选图像、坐标轴类型、刻度和数值、参考点、数据系列以及数据点。加载同一文件即可继续之前的工作。",
+          notice: "如需稍后继续，请设置项目名称并使用“保存项目”下载 JSON 文件。加载该文件会恢复图像、坐标轴设置、数据系列和数据点。使用下载 CSV 或复制导出最终结果。", about: "关于服务", privacy: "隐私政策", terms: "使用条款", contact: "联系与问题反馈"
+        }
+      };
+    </script>
+    <script src="info.js"></script>
   </body>
 </html>

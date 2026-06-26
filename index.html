@@ -122,6 +122,7 @@
       .top-actions {
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
         gap: 10px;
       }
 
@@ -133,6 +134,25 @@
         color: var(--text);
         padding: 0 12px;
         box-shadow: var(--shadow);
+      }
+
+      .guide-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 12px;
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        background: var(--accent);
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      body.dark .guide-link {
+        color: #06201d;
       }
 
       .workspace {
@@ -377,32 +397,6 @@
         box-shadow: var(--shadow);
       }
 
-      .tutorial {
-        margin-bottom: 20px;
-        padding: 16px 18px;
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        box-shadow: var(--shadow);
-      }
-
-      .tutorial summary {
-        cursor: pointer;
-        font-weight: 700;
-        color: var(--text);
-      }
-
-      .tutorial ol {
-        margin: 14px 0 0;
-        padding-left: 22px;
-        color: var(--muted);
-        line-height: 1.6;
-      }
-
-      .tutorial li + li {
-        margin-top: 8px;
-      }
-
       .calibration-list {
         display: grid;
         gap: 8px;
@@ -519,6 +513,7 @@
           <p data-i18n="appSubtitle">스크린샷을 올리고 축 기준점 4개를 찍은 다음 데이터 포인트를 클릭하세요.</p>
         </div>
         <div class="top-actions">
+          <a class="guide-link" href="guide.html" data-language-link data-i18n="navGuide">사용 가이드</a>
           <select class="language-select" id="languageSelect" aria-label="언어 선택" data-i18n-aria-label="languageLabel">
             <option value="ko">한국어</option>
             <option value="en">English</option>
@@ -528,18 +523,6 @@
           <button class="theme-toggle" type="button" aria-label="다크모드 켜기" aria-pressed="false">☾</button>
         </div>
       </header>
-
-      <details class="tutorial" open>
-        <summary data-i18n="tutorialTitle">튜토리얼</summary>
-        <ol>
-          <li data-i18n="tutorialStep1">그래프 스크린샷을 업로드합니다.</li>
-          <li data-i18n="tutorialStep2">X축 왼쪽, X축 오른쪽, Y축 아래, Y축 위 기준점을 차례로 클릭합니다.</li>
-          <li data-i18n="tutorialStep3">X축과 Y축 타입을 숫자 또는 날짜로 선택하고 각 기준값을 입력합니다.</li>
-          <li data-i18n="tutorialStep4">데이터 찍기 모드에서 그래프의 점이나 선 위를 클릭합니다.</li>
-          <li data-i18n="tutorialStep5">마우스를 이미지 위에 올리면 확대경이 나타나고, 화살표 키로 선택한 기준점 또는 데이터 포인트를 미세조정할 수 있습니다.</li>
-          <li data-i18n="tutorialStep6">Delete 키로 선택한 데이터 포인트를 삭제하고, CSV 다운로드 또는 복사 버튼으로 결과를 저장합니다.</li>
-        </ol>
-      </details>
 
       <main class="workspace">
         <aside class="panel">
@@ -558,7 +541,7 @@
             </label>
             <div class="action-row">
               <button class="action-button" id="saveProjectButton" type="button" data-i18n="saveProject">프로젝트 저장</button>
-              <label class="action-button" for="loadProjectInput" data-i18n="loadProject">프로젝트 불러오기</label>
+              <button class="action-button" id="loadProjectButton" type="button" data-i18n="loadProject">프로젝트 불러오기</button>
               <input id="loadProjectInput" type="file" accept="application/json" hidden>
             </div>
             <p class="hint" data-i18n="projectHint">이미지, 축 설정, 시리즈, 데이터 포인트를 JSON 파일로 저장하고 다시 불러옵니다.</p>
@@ -683,11 +666,11 @@
       </section>
 
       <footer class="site-footer">
-        <a href="guide.html">그래프 값 추출 가이드</a>
-        <a href="about.html">서비스 소개</a>
-        <a href="privacy.html">개인정보처리방침</a>
-        <a href="terms.html">이용약관</a>
-        <a href="https://github.com/giyoon80/graph_plot/issues" target="_blank" rel="noopener noreferrer">문의 및 오류 제보</a>
+        <a href="guide.html" data-language-link data-i18n="footerGuide">그래프 값 추출 가이드</a>
+        <a href="about.html" data-language-link data-i18n="footerAbout">서비스 소개</a>
+        <a href="privacy.html" data-language-link data-i18n="footerPrivacy">개인정보처리방침</a>
+        <a href="terms.html" data-language-link data-i18n="footerTerms">이용약관</a>
+        <a href="https://github.com/giyoon80/graph_plot/issues" target="_blank" rel="noopener noreferrer" data-i18n="footerContact">문의 및 오류 제보</a>
       </footer>
     </div>
 
@@ -713,6 +696,7 @@
       const seriesNameInput = document.querySelector("#seriesNameInput");
       const addSeriesButton = document.querySelector("#addSeriesButton");
       const saveProjectButton = document.querySelector("#saveProjectButton");
+      const loadProjectButton = document.querySelector("#loadProjectButton");
       const loadProjectInput = document.querySelector("#loadProjectInput");
       const projectNameInput = document.querySelector("#projectNameInput");
       const valueInputs = {
@@ -826,6 +810,12 @@
           deleteKeyHint: "Delete 키로 선택한 데이터 포인트를 삭제할 수 있습니다.",
           logScaleNeedsPositive: "로그 스케일은 기준값과 데이터 값이 모두 0보다 커야 합니다.",
           projectLoaded: "프로젝트를 불러왔습니다.",
+          navGuide: "사용 가이드",
+          footerGuide: "그래프 값 추출 가이드",
+          footerAbout: "서비스 소개",
+          footerPrivacy: "개인정보처리방침",
+          footerTerms: "이용약관",
+          footerContact: "문의 및 오류 제보",
         },
         en: {
           appTitle: "Graph Value Extractor",
@@ -903,6 +893,12 @@
           deleteKeyHint: "Press Delete to remove the selected data point.",
           logScaleNeedsPositive: "Log scale requires all reference and data values to be greater than zero.",
           projectLoaded: "Project loaded.",
+          navGuide: "User guide",
+          footerGuide: "Graph extraction guide",
+          footerAbout: "About",
+          footerPrivacy: "Privacy policy",
+          footerTerms: "Terms of use",
+          footerContact: "Contact and report an issue",
         },
         ja: {
           appTitle: "グラフ値抽出ツール",
@@ -980,6 +976,12 @@
           deleteKeyHint: "Deleteキーで選択したデータポイントを削除できます。",
           logScaleNeedsPositive: "対数スケールでは、すべての基準値とデータ値が0より大きい必要があります。",
           projectLoaded: "プロジェクトを読み込みました。",
+          navGuide: "使い方ガイド",
+          footerGuide: "グラフ値抽出ガイド",
+          footerAbout: "サービスについて",
+          footerPrivacy: "プライバシーポリシー",
+          footerTerms: "利用規約",
+          footerContact: "お問い合わせ・不具合報告",
         },
         "zh-CN": {
           appTitle: "图表数值提取器",
@@ -1057,6 +1059,12 @@
           deleteKeyHint: "按 Delete 键可删除选中的数据点。",
           logScaleNeedsPositive: "对数刻度要求所有参考值和数据值都大于零。",
           projectLoaded: "项目已加载。",
+          navGuide: "使用指南",
+          footerGuide: "图表数值提取指南",
+          footerAbout: "关于服务",
+          footerPrivacy: "隐私政策",
+          footerTerms: "使用条款",
+          footerContact: "联系与问题反馈",
         },
       };
 
@@ -1080,6 +1088,12 @@
 
         document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
           element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel));
+        });
+
+        document.querySelectorAll("[data-language-link]").forEach((element) => {
+          const url = new URL(element.getAttribute("href"), window.location.href);
+          url.searchParams.set("lang", languageSelect.value);
+          element.href = `${url.pathname.split("/").pop()}${url.search}`;
         });
 
         localStorage.setItem("language", languageSelect.value);
@@ -1828,6 +1842,8 @@
           "application/json;charset=utf-8"
         );
       });
+
+      loadProjectButton.addEventListener("click", () => loadProjectInput.click());
 
       loadProjectInput.addEventListener("change", async () => {
         const file = loadProjectInput.files[0];
