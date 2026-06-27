@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="그래프 스크린샷에서 축 기준점과 데이터 포인트를 지정해 X/Y 값을 CSV로 추출하는 브라우저 기반 도구입니다.">
     <meta name="google-adsense-account" content="ca-pub-1772996045722357">
+    <link rel="canonical" href="https://graphplot.shop/">
+    <link rel="alternate" hreflang="ko" href="https://graphplot.shop/">
+    <link rel="alternate" hreflang="en" href="https://graphplot.shop/en/">
+    <link rel="alternate" hreflang="ja" href="https://graphplot.shop/ja/">
+    <link rel="alternate" hreflang="zh-Hans" href="https://graphplot.shop/zh-cn/">
+    <link rel="alternate" hreflang="x-default" href="https://graphplot.shop/">
     <title>그래프 값 추출기</title>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-CLPZ8SNQ32"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1772996045722357"
@@ -1069,7 +1075,10 @@
       };
 
       const savedTheme = localStorage.getItem("theme");
-      const savedLanguage = localStorage.getItem("language") || "ko";
+      const requestedLanguage = new URLSearchParams(window.location.search).get("lang");
+      const savedLanguage = translations[requestedLanguage]
+        ? requestedLanguage
+        : (localStorage.getItem("language") || "ko");
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       const magnifierZoom = 4;
 
