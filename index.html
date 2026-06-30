@@ -482,6 +482,14 @@
         color: inherit;
       }
 
+      .adfit-banner {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin-top: 20px;
+        overflow: hidden;
+      }
+
       @media (max-width: 980px) {
         .workspace {
           grid-template-columns: 1fr;
@@ -666,6 +674,13 @@
         </section>
       </main>
 
+      <div class="adfit-banner" aria-label="광고">
+        <ins class="kakao_ad_area" style="display:none;"
+          data-ad-unit="DAN-YRNraFThEDUAXyrU"
+          data-ad-width="728"
+          data-ad-height="90"></ins>
+      </div>
+
       <section class="comments" aria-label="댓글" data-i18n-aria-label="commentsLabel">
         <h2 data-i18n="commentsTitle">익명 피드백</h2>
         <p class="hint" data-i18n="commentsHint">이름을 공개하지 않고 의견을 남길 수 있습니다. Disqus 게스트 댓글이 켜져 있어야 로그인 없이 작성할 수 있습니다.</p>
@@ -680,6 +695,8 @@
         <a href="https://github.com/giyoon80/graph_plot/issues" target="_blank" rel="noopener noreferrer" data-i18n="footerContact">문의 및 오류 제보</a>
       </footer>
     </div>
+
+    <script src="//t1.kakaocdn.net/kas/static/ba.min.js" async></script>
 
     <script>
       const themeToggle = document.querySelector(".theme-toggle");
